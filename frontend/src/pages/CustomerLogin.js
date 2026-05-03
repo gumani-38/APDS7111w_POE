@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   hasErrors,
@@ -13,11 +13,20 @@ const CustomerLogin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const { fetchProfile } = useContext(UserContext);
+  const { fetchProfile, user, ready } = useContext(UserContext);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  useEffect(() => {
+    if (ready && user) {
+      navigate("/customer-dashboard");
+    }
+  }, [ready, user, navigate]);
+
+  if (!ready) {
+    return <div>Loading...</div>;
+  }
 
   const handleUsernameChange = (value) => {
     setUsername(sanitizers.email(value));

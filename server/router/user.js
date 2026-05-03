@@ -65,7 +65,7 @@ router.post("/register", async (req, res) => {
       .status(200)
       .json({ result: result[0], message: "Customer successfully registered" });
   } catch (err) {
-    console.log(" error while logging in", err);
+    console.log(" error while registering in", err);
     res.status(500).json(err);
   }
 });
@@ -83,13 +83,6 @@ const loginSchema = joi.object({
 router.post("/login", async (req, res) => {
   try {
     const { username, accountNumber, password } = req.body;
-    // validate the input data against the schema
-    console.log(
-      "Login attempt with username:",
-      username,
-      "and accountNumber:",
-      accountNumber,
-    );
     const { error } = loginSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
@@ -117,8 +110,8 @@ router.post("/login", async (req, res) => {
     });
     res.cookie("token", token, {
       httpOnly: true, // Prevents client-side JS from accessing the cookie (XSS protection)
-      secure: process.env.NODE_ENV === "production", // Use true for HTTPS in production
-      sameSite: "strict", // Protects against CSRF
+      secure: true, // Use true for HTTPS in production
+      sameSite: "none", // Protects against CSRF
       maxAge: 720000, // 12 minutes in milliseconds
     });
 

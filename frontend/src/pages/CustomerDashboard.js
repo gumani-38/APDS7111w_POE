@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import CurrencySwitcher from "../components/CurrencySwitcher";
 import TransactionTimeline from "../components/TransactionTimeline";
 import CreatePaymentModal from "../components/CreatePaymentModal";
