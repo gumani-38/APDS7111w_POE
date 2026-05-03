@@ -11,6 +11,30 @@ use apds7111w_poe;
 -- password  varchar(200) not null
 -- );
 
+-- CREATE TABLE Transactions(
+--  transactionId INT AUTO_INCREMENT PRIMARY KEY,
+--  customerId INT NOT NULL,
+--  amount DECIMAL(15,2) NOT NULL,
+--  currency VARCHAR(3) NOT NULL,
+--  provider VARCHAR(50) NOT NULL DEFAULT 'SWIFT',
+--  payeeName VARCHAR(100) NOT NULL,
+--  payeeAccountNumber VARCHAR(50) NOT NULL,
+--  swiftCode VARCHAR(11) NOT NULL,
+--  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+--  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--  verifiedAt TIMESTAMP NULL,
+--  verifiedBy INT NULL,
+--  FOREIGN KEY (customerId) REFERENCES Customers(customerId)
+--);
+
+-- CREATE TABLE Employees(
+--  employeeId INT AUTO_INCREMENT PRIMARY KEY,
+--  fullName VARCHAR(100) NOT NULL,
+--  username VARCHAR(50) UNIQUE NOT NULL,
+--  password VARCHAR(200) NOT NULL,
+--  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+--);
+
 show tables;
 
 select * from customers

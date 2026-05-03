@@ -18,10 +18,10 @@ const registrationSchema = joi.object({
     .min(2)
     .max(30)
     .required(),
-  idNumber: joi.string().pattern(new RegExp("^[0-9]$")).length(13).required(),
+  idNumber: joi.string().pattern(new RegExp("^[0-9]+$")).length(13).required(),
   accountNumber: joi
     .string()
-    .pattern(new RegExp("^[0-9]$"))
+    .pattern(new RegExp("^[0-9]+$"))
     .length(10)
     .required(),
   username: joi.string().email().required(),
@@ -93,7 +93,7 @@ router.post("/login", async (req, res) => {
       "SELECT * FROM Customers WHERE username = ? AND accountNumber = ?";
     const [result] = await db.execute(sql, [username, accountNumber]);
 
-    if (result[0].length === 0)
+    if (result.length === 0)
       return res
         .status(404)
         .json("Invalid username, account number or password");
@@ -104,7 +104,11 @@ router.post("/login", async (req, res) => {
         .status(400)
         .json("invalid username, account number or password");
 
-    const token = generateAuthToken(result[0]);
+    const token = generateAuthToken({ 
+      customerId: result[0].customerId, 
+      username: result[0].username,
+      role: "customer"
+    });
     res.cookie("token", token, {
       httpOnly: true, // Prevents client-side JS from accessing the cookie (XSS protection)
       secure: process.env.NODE_ENV === "production", // Use true for HTTPS in production
