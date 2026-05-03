@@ -1,12 +1,12 @@
-import React, { useContext, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import CustomerRegister from "./pages/CustomerRegister";
 import CustomerLogin from "./pages/CustomerLogin";
 import CustomerDashboard from "./pages/CustomerDashboard";
 // import EmployeeLogin from "./pages/EmployeeLogin";
 // import EmployeeDashboard from "./pages/EmployeeDashboard";
 import axios from "axios";
-import { UserContext, UserContextProvider } from "./context/UserContext";
+import { UserContextProvider } from "./context/UserContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 // set base URL for all axios requests
 axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL;
@@ -22,7 +22,6 @@ const useFrameBusting = () => {
 };
 function App() {
   useFrameBusting();
-  const { user, ready } = useContext(UserContext);
   return (
     <UserContextProvider>
       <BrowserRouter
