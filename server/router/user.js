@@ -110,8 +110,8 @@ router.post("/login", async (req, res) => {
     });
     res.cookie("token", token, {
       httpOnly: true, // Prevents client-side JS from accessing the cookie (XSS protection)
-      secure: process.env.NODE_ENV === "production", // Use true for HTTPS in production
-      sameSite: "strict", // Protects against CSRF
+      secure: true, // Use true for HTTPS in production
+      sameSite: "none", // Protects against CSRF
       maxAge: 720000, // 12 minutes in milliseconds
     });
 
