@@ -83,13 +83,6 @@ const loginSchema = joi.object({
 router.post("/login", async (req, res) => {
   try {
     const { username, accountNumber, password } = req.body;
-    // validate the input data against the schema
-    console.log(
-      "Login attempt with username:",
-      username,
-      "and accountNumber:",
-      accountNumber,
-    );
     const { error } = loginSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });

@@ -11,9 +11,16 @@ const CurrencySwitcher = ({ onCurrencyChange }) => {
       setLoading(true);
       setError("");
       try {
-        // const response = await api.get('/user/balance', { params: { currency: selectedCurrency } });
-        // setConvertedBalance(response.data.convertedBalance);
-        // if (onCurrencyChange) onCurrencyChange(selectedCurrency);
+        const defaultBalance = 200000;
+
+        // Simulate API call to convert balance
+        const response = await fetch(
+          `https://api.exchangerate-api.com/v4/latest/USD`,
+        );
+        const data = await response.json();
+        const rate = data.rates[selectedCurrency];
+        const converted = defaultBalance * rate;
+        setConvertedBalance(converted);
       } catch (err) {
         console.error(err);
         setError("Could not convert balance");

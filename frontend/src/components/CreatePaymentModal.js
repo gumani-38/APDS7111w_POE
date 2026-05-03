@@ -78,7 +78,7 @@ const CreatePaymentModal = ({ onClose, onPaymentCreated }) => {
     setSubmitError("");
 
     try {
-      axios.post("/api/transaction/create", {
+      await axios.post("/api/transaction/create", {
         amount: payment.amount,
         currency: payment.currency,
         provider: payment.provider,

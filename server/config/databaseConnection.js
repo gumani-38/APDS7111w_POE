@@ -1,11 +1,11 @@
 const mysql = require("mysql2");
-
+require("dotenv").config();
 const db = mysql
   .createPool({
     host: "gateway01.us-east-1.prod.aws.tidbcloud.com",
     port: 4000,
     user: "Tqqd4hzZVoNCHPy.root",
-    password: "ujhM14XsdxRFCfK9",
+    password: process.env.DB_PASSWORD,
     database: "test",
 
     waitForConnections: true,
