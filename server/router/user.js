@@ -1,9 +1,9 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const db = require("../config/databaseConnection");
-const { generateAuthToken } = require("../middleware/Auth");
+const { generateAuthToken, AuthorizedUser } = require("../middleware/Auth");
 const joi = require("joi");
-
+const rateLimit = require("express-rate-limit");
 // input sanitation and validation schema
 const registrationSchema = joi.object({
   firstName: joi
@@ -18,10 +18,10 @@ const registrationSchema = joi.object({
     .min(2)
     .max(30)
     .required(),
-  idNumber: joi.string().pattern(new RegExp("^[0-9]$")).length(13).required(),
+  idNumber: joi.string().pattern(new RegExp("^[0-9]+$")).length(13).required(),
   accountNumber: joi
     .string()
-    .pattern(new RegExp("^[0-9]$"))
+    .pattern(new RegExp("^[0-9]+$"))
     .length(10)
     .required(),
   username: joi.string().email().required(),
@@ -84,6 +84,12 @@ router.post("/login", async (req, res) => {
   try {
     const { username, accountNumber, password } = req.body;
     // validate the input data against the schema
+    console.log(
+      "Login attempt with username:",
+      username,
+      "and accountNumber:",
+      accountNumber,
+    );
     const { error } = loginSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
@@ -93,7 +99,7 @@ router.post("/login", async (req, res) => {
       "SELECT * FROM Customers WHERE username = ? AND accountNumber = ?";
     const [result] = await db.execute(sql, [username, accountNumber]);
 
-    if (result[0].length === 0)
+    if (result.length === 0)
       return res
         .status(404)
         .json("Invalid username, account number or password");
@@ -104,7 +110,11 @@ router.post("/login", async (req, res) => {
         .status(400)
         .json("invalid username, account number or password");
 
-    const token = generateAuthToken(result[0]);
+    const token = generateAuthToken({
+      customerId: result[0].customerId,
+      username: result[0].username,
+      role: "customer",
+    });
     res.cookie("token", token, {
       httpOnly: true, // Prevents client-side JS from accessing the cookie (XSS protection)
       secure: process.env.NODE_ENV === "production", // Use true for HTTPS in production
@@ -115,6 +125,37 @@ router.post("/login", async (req, res) => {
     res.status(200).json("Login successful");
   } catch (err) {
     console.log(" error while logging in", err);
+    res.status(500).json(err);
+  }
+});
+router.get("/logout", AuthorizedUser, async (req, res) => {
+  try {
+    res.clearCookie("token");
+    res.status(200).json("Logout successful");
+  } catch (err) {
+    console.log(" error while logging out", err);
+    res.status(500).json(err);
+  }
+});
+
+// rate limiter for profile route to prevent brute-force attacks
+const loginLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 60 minutes
+  max: 5, // 5 attempts per window
+  message: "Too many login attempts. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.get("/profile", loginLimiter, AuthorizedUser, async (req, res) => {
+  try {
+    const customerId = req.user.customerId;
+    const sql =
+      "SELECT firstName, lastName, accountNumber, username FROM Customers WHERE customerId = ?";
+    const [result] = await db.execute(sql, [customerId]);
+
+    res.status(200).json(result[0]);
+  } catch (err) {
+    console.log(" error while fetching user data", err);
     res.status(500).json(err);
   }
 });
