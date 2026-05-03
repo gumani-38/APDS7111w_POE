@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const db = require("../config/databaseConnection");
 const { generateAuthToken, AuthorizedUser } = require("../middleware/Auth");
 const joi = require("joi");
-
+const rateLimit = require("express-rate-limit");
 // input sanitation and validation schema
 const registrationSchema = joi.object({
   firstName: joi
@@ -137,7 +137,16 @@ router.get("/logout", AuthorizedUser, async (req, res) => {
     res.status(500).json(err);
   }
 });
-router.get("/profile", AuthorizedUser, async (req, res) => {
+
+// rate limiter for profile route to prevent brute-force attacks
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window
+  message: "Too many login attempts. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.get("/profile", loginLimiter, AuthorizedUser, async (req, res) => {
   try {
     const customerId = req.user.customerId;
     const sql =
