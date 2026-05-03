@@ -1,21 +1,15 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { authService } from '../services/auth';
+import { useContext } from "react";
+import { Navigate } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
 
-function ProtectedRoute({ children, userType }) {
-    const user = authService.getCurrentUser();
-    const employee = authService.getCurrentEmployee();
-    
-    // Check authentication based on user type
-    if (userType === 'customer' && !user) {
-        return <Navigate to="/customer/login" />;
-    }
-    
-    if (userType === 'employee' && !employee) {
-        return <Navigate to="/employee/login" />;
-    }
-    
-    return children;
-}
+const ProtectedRoute = ({ children }) => {
+  const { user, ready } = useContext(UserContext);
+
+  if (ready && !user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
 
 export default ProtectedRoute;

@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const db = require("../config/databaseConnection");
-const { generateAuthToken } = require("../middleware/Auth");
+const { generateAuthToken, AuthorizedUser } = require("../middleware/Auth");
 const joi = require("joi");
 
 // input sanitation and validation schema
@@ -84,6 +84,12 @@ router.post("/login", async (req, res) => {
   try {
     const { username, accountNumber, password } = req.body;
     // validate the input data against the schema
+    console.log(
+      "Login attempt with username:",
+      username,
+      "and accountNumber:",
+      accountNumber,
+    );
     const { error } = loginSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
@@ -104,10 +110,10 @@ router.post("/login", async (req, res) => {
         .status(400)
         .json("invalid username, account number or password");
 
-    const token = generateAuthToken({ 
-      customerId: result[0].customerId, 
+    const token = generateAuthToken({
+      customerId: result[0].customerId,
       username: result[0].username,
-      role: "customer"
+      role: "customer",
     });
     res.cookie("token", token, {
       httpOnly: true, // Prevents client-side JS from accessing the cookie (XSS protection)
@@ -122,11 +128,28 @@ router.post("/login", async (req, res) => {
     res.status(500).json(err);
   }
 });
-router.get("/user", async (req, res) => {
+router.get("/logout", AuthorizedUser, async (req, res) => {
   try {
+    res.clearCookie("token");
+    res.status(200).json("Logout successful");
+  } catch (err) {
+    console.log(" error while logging out", err);
+    res.status(500).json(err);
+  }
+});
+router.get("/profile", AuthorizedUser, async (req, res) => {
+  try {
+    const customerId = req.user.customerId;
+    console.log("Fetching profile for customerId:", customerId);
+    const sql =
+      "SELECT firstName, lastName, accountNumber, username FROM Customers WHERE customerId = ?";
+    const [result] = await db.execute(sql, [customerId]);
+
+    res.status(200).json(result[0]);
   } catch (err) {
     console.log(" error while fetching user data", err);
     res.status(500).json(err);
   }
 });
+
 module.exports = router;
