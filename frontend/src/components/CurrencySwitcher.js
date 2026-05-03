@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const CurrencySwitcher = ({ onCurrencyChange }) => {
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
-  const [convertedBalance, setConvertedBalance] = useState("");
+  const [convertedBalance, setConvertedBalance] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
