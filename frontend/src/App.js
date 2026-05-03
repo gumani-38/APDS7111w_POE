@@ -9,7 +9,7 @@ import axios from "axios";
 import { UserContext, UserContextProvider } from "./context/UserContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 // set base URL for all axios requests
-axios.defaults.baseURL = "http://localhost:3500";
+axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL;
 // add credentials to all requests
 axios.defaults.withCredentials = true;
 //detect if your application is being framed and break out of it.
@@ -25,7 +25,9 @@ function App() {
   const { user, ready } = useContext(UserContext);
   return (
     <UserContextProvider>
-      <BrowserRouter>
+      <BrowserRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Routes>
           <Route path="/customer-register" element={<CustomerRegister />} />
           <Route
@@ -39,16 +41,7 @@ function App() {
 
           {/* <Route path="/employee-login" element={<EmployeeLogin />} />
                 <Route path="/employee-dashboard" element={<EmployeeDashboard />} /> */}
-          <Route
-            path="/"
-            element={
-              !user ? (
-                <CustomerLogin />
-              ) : (
-                <Navigate to="/customer-dashboard" replace />
-              )
-            }
-          />
+          <Route path="/" element={<CustomerLogin />} />
         </Routes>
       </BrowserRouter>
     </UserContextProvider>
