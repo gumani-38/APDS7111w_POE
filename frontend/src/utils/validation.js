@@ -61,10 +61,6 @@ export const validateRegistration = (form) => {
     errors.username = "please enter a valid email address.";
   }
 
-  if (!patterns.email.test(form.email.trim())) {
-    errors.email = "Enter a valid email address.";
-  }
-
   if (!patterns.password.test(form.password)) {
     errors.password =
       "Use 8+ characters with uppercase, lowercase, number, and symbol.";

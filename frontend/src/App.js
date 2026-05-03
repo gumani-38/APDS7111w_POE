@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import CustomerRegister from "./pages/CustomerRegister";
 import CustomerLogin from "./pages/CustomerLogin";
@@ -13,7 +13,16 @@ axios.defaults.baseURL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:3000";
 // add credentials to all requests
 axios.defaults.withCredentials = true;
+//detect if your application is being framed and break out of it.
+const useFrameBusting = () => {
+  useEffect(() => {
+    if (window.self !== window.top) {
+      window.top.location.href = window.self.location.href;
+    }
+  }, []);
+};
 function App() {
+  useFrameBusting();
   const { user, ready } = useContext(UserContext);
   return (
     <UserContextProvider>
@@ -34,7 +43,7 @@ function App() {
           <Route
             path="/"
             element={
-              ready && !user ? (
+              !user ? (
                 <CustomerLogin />
               ) : (
                 <Navigate to="/customer-dashboard" replace />

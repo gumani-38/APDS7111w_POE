@@ -140,7 +140,6 @@ router.get("/logout", AuthorizedUser, async (req, res) => {
 router.get("/profile", AuthorizedUser, async (req, res) => {
   try {
     const customerId = req.user.customerId;
-    console.log("Fetching profile for customerId:", customerId);
     const sql =
       "SELECT firstName, lastName, accountNumber, username FROM Customers WHERE customerId = ?";
     const [result] = await db.execute(sql, [customerId]);

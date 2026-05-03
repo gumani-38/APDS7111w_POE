@@ -87,7 +87,7 @@ const CreatePaymentModal = ({ onClose, onPaymentCreated }) => {
         payeeAccountNumber: payment.beneficiaryAccount,
       });
 
-      onClose();
+      onPaymentCreated();
     } catch (err) {
       setSubmitError(
         err.response?.data?.error ||

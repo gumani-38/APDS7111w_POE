@@ -12,6 +12,7 @@ export function UserContextProvider({ children }) {
       fetchProfile();
     }
   }, []);
+  console.log("UserContextProvider rendered. User:", user, "Ready:", ready);
   const fetchProfile = async () => {
     try {
       console.log("Fetching user profile...");

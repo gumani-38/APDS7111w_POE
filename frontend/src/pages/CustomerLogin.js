@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   hasErrors,
@@ -7,11 +7,13 @@ import {
 } from "../utils/validation";
 import "./Auth.css";
 import axios from "axios";
+import { UserContext } from "../context/UserContext";
 
 const CustomerLogin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
+  const { fetchProfile } = useContext(UserContext);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +59,7 @@ const CustomerLogin = () => {
         accountNumber,
         password,
       });
-
+      await fetchProfile(); // Refresh user profile after login
       setError("");
       navigate("/customer-dashboard");
     } catch (err) {

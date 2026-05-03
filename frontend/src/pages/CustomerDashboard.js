@@ -15,7 +15,11 @@ const CustomerDashboard = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const fetchPayments = useCallback(async () => {
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
     try {
       setError("");
       const { data } = await axios.get("/api/transaction/my");
@@ -23,11 +27,7 @@ const CustomerDashboard = () => {
     } catch (err) {
       setError("Failed to fetch payments. Please try again." + err);
     }
-  }, [navigate]);
-
-  useEffect(() => {
-    fetchPayments();
-  }, [fetchPayments]);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -45,7 +45,7 @@ const CustomerDashboard = () => {
   const handleLogout = async () => {
     try {
       await logout(); // Assuming you have a logout function that clears auth tokens
-      navigate("/customer-login");
+      navigate("/");
     } catch (err) {
       setError("Logout failed. Please try again." + err);
     }

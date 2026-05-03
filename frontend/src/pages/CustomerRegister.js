@@ -16,7 +16,6 @@ const CustomerRegister = () => {
     idNumber: "",
     accountNumber: "",
     username: "",
-    email: "",
     password: "",
   });
   const [errors, setErrors] = useState({});
@@ -55,7 +54,7 @@ const CustomerRegister = () => {
 
     try {
       await axios.post("/api/user/register", form);
-      navigate("/customer-login");
+      navigate("/");
     } catch (err) {
       setError(
         getApiErrorMessage(err, "Registration failed. Please try again."),
