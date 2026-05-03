@@ -118,5 +118,11 @@ router.post("/login", async (req, res) => {
     res.status(500).json(err);
   }
 });
-
+router.get("/user", async (req, res) => {
+  try {
+  } catch (err) {
+    console.log(" error while fetching user data", err);
+    res.status(500).json(err);
+  }
+});
 module.exports = router;
