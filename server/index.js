@@ -16,7 +16,7 @@ const cors = require("cors");
 
 app.use(
   cors({
-    origin: "http://localhost:3001",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   }),
 );
@@ -55,7 +55,7 @@ app.use("/api/transaction", transactionRoute);
 //   cert: fs.readFileSync(path.join(__dirname, "keys", "certificate.pem")),
 // };
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
