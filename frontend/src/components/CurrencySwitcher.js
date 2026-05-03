@@ -59,7 +59,7 @@ const CurrencySwitcher = ({ onCurrencyChange }) => {
         ) : error ? (
           <span style={{ color: "red" }}>{error}</span>
         ) : convertedBalance !== null ? (
-          `${selectedCurrency} ${convertedBalance.toFixed(2)}`
+          `${selectedCurrency} ${convertedBalance}`
         ) : (
           "Unable to load balance"
         )}
