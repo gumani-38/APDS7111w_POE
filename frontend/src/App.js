@@ -9,8 +9,7 @@ import axios from "axios";
 import { UserContext, UserContextProvider } from "./context/UserContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 // set base URL for all axios requests
-axios.defaults.baseURL =
-  process.env.REACT_APP_BACKEND_URL || "http://localhost:3000";
+axios.defaults.baseURL = "http://localhost:3500";
 // add credentials to all requests
 axios.defaults.withCredentials = true;
 //detect if your application is being framed and break out of it.

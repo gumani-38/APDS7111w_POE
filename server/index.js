@@ -55,7 +55,7 @@ app.use("/api/transaction", transactionRoute);
 //   cert: fs.readFileSync(path.join(__dirname, "keys", "certificate.pem")),
 // };
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3500;
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

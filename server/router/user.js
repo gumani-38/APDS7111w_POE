@@ -65,7 +65,7 @@ router.post("/register", async (req, res) => {
       .status(200)
       .json({ result: result[0], message: "Customer successfully registered" });
   } catch (err) {
-    console.log(" error while logging in", err);
+    console.log(" error while registering in", err);
     res.status(500).json(err);
   }
 });
