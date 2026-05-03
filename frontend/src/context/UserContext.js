@@ -11,8 +11,7 @@ export function UserContextProvider({ children }) {
     if (!user) {
       fetchProfile();
     }
-  }, []);
-  console.log("UserContextProvider rendered. User:", user, "Ready:", ready);
+  }, [user]);
   const fetchProfile = async () => {
     try {
       const { data } = await axios.get("/api/user/profile");

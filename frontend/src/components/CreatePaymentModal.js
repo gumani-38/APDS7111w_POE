@@ -43,33 +43,35 @@ const CreatePaymentModal = ({ onClose, onPaymentCreated }) => {
     return value;
   };
 
-  const validateAmount = async (amount, currency) => {
-    try {
-      //   const res = await api.get("/user/balance", { params: { currency } });
-      //   const availableBalance = Number(res.data.convertedBalance);
-      //   return { ok: amount <= availableBalance, availableBalance };
-    } catch (err) {
-      return {
-        ok: false,
-        // error: getApiErrorMessage(err, "Could not confirm available balance."),
-      };
-    }
-  };
+  // const validateAmount = async (amount, currency) => {
+  //   try {
+  //     //   const res = await api.get("/user/balance", { params: { currency } });
+  //     //   const availableBalance = Number(res.data.convertedBalance);
+  //     //   return { ok: amount <= availableBalance, availableBalance };
+  //   } catch (err) {
+  //     return {
+  //       ok: false,
+  //       // error: getApiErrorMessage(err, "Could not confirm available balance."),
+  //     };
+  //   }
+  // };
 
   const handleNext = async (e) => {
     e.preventDefault();
     const newErrors = validatePayment(payment);
     setErrors(newErrors);
     setSubmitError("");
-
+    setIsCheckingBalance(true);
     if (hasErrors(newErrors)) {
       setSubmitError("Please correct the highlighted fields.");
       return;
     }
+
+    setIsCheckingBalance(false);
     setStep("review");
   };
 
-  const amountValue = Number(payment.amount) || 0;
+  // const amountValue = Number(payment.amount) || 0;
   // const fees = (amountValue * 0.02).toFixed(2);
   // const total = (amountValue + Number(fees)).toFixed(2);
 
