@@ -125,7 +125,7 @@ router.post("/login", async (req, res) => {
 const loginLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 60 minutes
   max: 7, // 7 attempts per window
-  message: "Too many login attempts. Please try again later.",
+  message: "Too many login attempts. Please try again later .",
   standardHeaders: true,
   legacyHeaders: false,
 });
