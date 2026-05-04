@@ -47,7 +47,7 @@ router.post("/register", async (req, res) => {
       accountNumber,
     ]);
     if (userFound.length > 0) {
-      return res.status(400).json("User already exists");
+      return res.status(400).json({ error: "User already exists" });
     }
 
     const sqlInsert =
@@ -66,7 +66,7 @@ router.post("/register", async (req, res) => {
       .json({ result: result[0], message: "Customer successfully registered" });
   } catch (err) {
     console.log(" error while registering in", err);
-    res.status(500).json(err);
+    res.status(500).json({ error: err });
   }
 });
 
@@ -95,13 +95,13 @@ router.post("/login", async (req, res) => {
     if (result.length === 0)
       return res
         .status(404)
-        .json("Invalid username, account number or password");
+        .json({ error: "Invalid username, account number or password" });
 
     const validPassword = await bcrypt.compare(password, result[0].password);
     if (!validPassword)
       return res
         .status(400)
-        .json("invalid username, account number or password");
+        .json({ error: "Invalid username, account number or password" });
 
     const token = generateAuthToken({
       customerId: result[0].customerId,
@@ -118,7 +118,7 @@ router.post("/login", async (req, res) => {
     res.status(200).json("Login successful");
   } catch (err) {
     console.log(" error while logging in", err);
-    res.status(500).json(err);
+    res.status(500).json({ error: err });
   }
 });
 router.get("/logout", AuthorizedUser, async (req, res) => {
@@ -127,7 +127,7 @@ router.get("/logout", AuthorizedUser, async (req, res) => {
     res.status(200).json("Logout successful");
   } catch (err) {
     console.log(" error while logging out", err);
-    res.status(500).json(err);
+    res.status(500).json({ error: err });
   }
 });
 
@@ -149,7 +149,7 @@ router.get("/profile", loginLimiter, AuthorizedUser, async (req, res) => {
     res.status(200).json(result[0]);
   } catch (err) {
     console.log(" error while fetching user data", err);
-    res.status(500).json(err);
+    res.status(500).json({ error: err });
   }
 });
 
