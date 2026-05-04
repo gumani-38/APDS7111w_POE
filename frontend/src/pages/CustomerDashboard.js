@@ -18,17 +18,7 @@ const CustomerDashboard = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
-
-  if (!ready) {
-    return <div>Loading...</div>;
-  }
-  if (ready && !user) {
-    navigate("/");
-    return null;
-  }
+  // ✅ Define fetchPayments first
   const fetchPayments = async () => {
     try {
       setError("");
@@ -41,6 +31,18 @@ const CustomerDashboard = () => {
     }
   };
 
+  // ✅ Then call it inside useEffect
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  if (!ready) {
+    return <div>Loading...</div>;
+  }
+  if (ready && !user) {
+    navigate("/");
+    return null;
+  }
   const getStatusColor = (status) => {
     switch (status) {
       case "settled":
