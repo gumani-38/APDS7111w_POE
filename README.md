@@ -7,7 +7,7 @@ Run npm install first before starting the server
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18+)
-- [WAMP](https://www.wampserver.com/en/) or any local MySQL server
+- TiDB cloud or any local MySQL server
 - [Git](https://git-scm.com/) (Git Bash needed for SSL cert generation)
 
 ### 1. Clone the repository
@@ -21,7 +21,7 @@ git checkout back-end
 ### 2. Install dependencies
 
 ```bash
-cd server
+cd server && cd frontend
 npm install
 ```
 
@@ -32,13 +32,21 @@ npm install
 3. Create a database called `apds7111w_poe`
 4. Run the SQL inside `server/DB_Script.sql` to create the `Customers`, `Transactions`, and `Employees` tables
 5. Manually seed at least one employee account (it is gitignored as it contains plaintext passwords. Contact group member for the seeding script).
-
+### 3. TiDB cloud Database setup
+1. create a TiDB account
+2. create a project or cluster instance ensure you select the free tier
+3. click on connect that will show the connection string that you can paste in the server folder in config  folder db connection
+4. for database name in TiDB cloud select test and ensure in you server config file is test
 ### 4. Environment variables
 
 Create a file called `.env` inside the `server/` folder:
 JWT_SECRET=your_long_random_secret_here
-PORT=3000
-
+DB_Password=your_TiDB-cloud_password 
+CLIENT_URL=your_frontend-url // for cors 
+PORT=3500
+### 4. Environment in frontend variables
+Create a file called `.env` inside the `frontend/` folder:
+REACT_APP_BACKEND_URL=your_server_url
 ### 5. Generate SSL certificate
 
 The server runs on HTTPS, so you need a self-signed certificate. From the `server/` folder, in **Git Bash** (not PowerShell):
@@ -54,7 +62,10 @@ Press Enter through all the prompts.
 ### 6. Run the server
 
 ```bash
-node index.js
+node index.js or nodemon index.js if installed
 ```
-
-The server starts at `https://localhost:3000`. Browsers will display a security warning for the self-signed certificate — this is expected. Click **Advanced → Proceed** to continue.
+### 6. Run the frontend
+```bash
+npm start
+```
+The server starts at `https://localhost:3500`. Browsers will display a security warning for the self-signed certificate — this is expected. Click **Advanced → Proceed** to continue.
