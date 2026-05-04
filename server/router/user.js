@@ -134,7 +134,7 @@ router.get("/logout", AuthorizedUser, async (req, res) => {
 // rate limiter for profile route to prevent brute-force attacks
 const loginLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 60 minutes
-  max: 5, // 5 attempts per window
+  max: 7, // 7 attempts per window
   message: "Too many login attempts. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,

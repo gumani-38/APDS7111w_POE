@@ -37,7 +37,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: "30mb" }));
 const limiter = rateLimit({
   windowMs: 2 * 60 * 1000, // 2 minutes
-  max: 200, // limit each IP to 200 requests per 2 minutes
+  max: 2000, // limit each IP to 2000 requests per 2 minutes
   standardHeaders: true, // send combined RateLimit header
   legacyHeaders: false, // disable X-RateLimit-* headers
   message: "Too many requests from this IP, please try again later.",
