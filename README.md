@@ -42,6 +42,7 @@ npm install
 Create a file called `.env` inside the `server/` folder:
 JWT_SECRET=your_long_random_secret_here
 DB_Password=your_TiDB-cloud_password 
+CLIENT_URL=your_frontend-url // for cors 
 PORT=3500
 ### 4. Environment in frontend variables
 Create a file called `.env` inside the `frontend/` folder:
