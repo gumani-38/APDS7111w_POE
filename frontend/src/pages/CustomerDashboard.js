@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 import { UserContext } from "../context/UserContext";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { getApiErrorMessage } from "../utils/validation";
 
 const CustomerDashboard = () => {
   const [payments, setPayments] = useState([]);
@@ -25,7 +27,9 @@ const CustomerDashboard = () => {
       const { data } = await axios.get("/api/transaction/my");
       setPayments(data);
     } catch (err) {
-      setError("Failed to fetch payments. Please try again." + err);
+      const errMsg = getApiErrorMessage(err, "Failed to fetch payments.");
+      setError(errMsg);
+      toast.error(errMsg);
     }
   };
 
@@ -47,7 +51,12 @@ const CustomerDashboard = () => {
       await logout(); // Assuming you have a logout function that clears auth tokens
       navigate("/");
     } catch (err) {
-      setError("Logout failed. Please try again." + err);
+      const errMsg = getApiErrorMessage(
+        err,
+        "Logout failed. Please try again.",
+      );
+      setError(errMsg);
+      toast.error(errMsg);
     }
   };
 

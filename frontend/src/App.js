@@ -5,6 +5,7 @@ import CustomerLogin from "./pages/CustomerLogin";
 import CustomerDashboard from "./pages/CustomerDashboard";
 // import EmployeeLogin from "./pages/EmployeeLogin";
 // import EmployeeDashboard from "./pages/EmployeeDashboard";
+import { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { UserContextProvider } from "./context/UserContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -42,6 +43,16 @@ function App() {
                 <Route path="/employee-dashboard" element={<EmployeeDashboard />} /> */}
           <Route path="/" element={<CustomerLogin />} />
         </Routes>
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            // Define default options
+            className: "",
+            duration: 5000,
+            removeDelay: 1000, // delay before removing the toast
+          }}
+        />
       </BrowserRouter>
     </UserContextProvider>
   );

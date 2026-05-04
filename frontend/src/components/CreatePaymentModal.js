@@ -42,19 +42,21 @@ const CreatePaymentModal = ({ onClose, onPaymentCreated }) => {
     if (name === "amount") return sanitizers.amount(value);
     return value;
   };
+  // Simple balance validation
+  const validateAmount = async (amount, currency) => {
+    // Hard-coded balance in USD
+    const availableBalanceUSD = 150000;
 
-  // const validateAmount = async (amount, currency) => {
-  //   try {
-  //     //   const res = await api.get("/user/balance", { params: { currency } });
-  //     //   const availableBalance = Number(res.data.convertedBalance);
-  //     //   return { ok: amount <= availableBalance, availableBalance };
-  //   } catch (err) {
-  //     return {
-  //       ok: false,
-  //       // error: getApiErrorMessage(err, "Could not confirm available balance."),
-  //     };
-  //   }
-  // };
+    if (currency === "USD") {
+      return {
+        ok: amount <= availableBalanceUSD,
+        availableBalance: availableBalanceUSD,
+      };
+    }
+
+    // For other currencies, you can either skip or add limits later
+    return { ok: true, availableBalance: Infinity };
+  };
 
   const handleNext = async (e) => {
     e.preventDefault();
@@ -62,8 +64,24 @@ const CreatePaymentModal = ({ onClose, onPaymentCreated }) => {
     setErrors(newErrors);
     setSubmitError("");
     setIsCheckingBalance(true);
+
     if (hasErrors(newErrors)) {
       setSubmitError("Please correct the highlighted fields.");
+      setIsCheckingBalance(false);
+      return;
+    }
+
+    // 🔎 Balance validation before proceeding
+    const { ok, availableBalance } = await validateAmount(
+      Number(payment.amount),
+      payment.currency,
+    );
+
+    if (!ok) {
+      setSubmitError(
+        `Insufficient balance. Available: ${availableBalance} ${payment.currency}`,
+      );
+      setIsCheckingBalance(false);
       return;
     }
 

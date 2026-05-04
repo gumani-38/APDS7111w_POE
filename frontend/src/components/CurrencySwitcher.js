@@ -11,7 +11,7 @@ const CurrencySwitcher = ({ onCurrencyChange }) => {
       setLoading(true);
       setError("");
       try {
-        const defaultBalance = 200000;
+        const defaultBalance = 150000;
 
         // Simulate API call to convert balance
         const response = await fetch(

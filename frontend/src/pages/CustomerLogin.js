@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  getApiErrorMessage,
   hasErrors,
   sanitizers,
   validateCustomerLogin,
@@ -8,6 +9,7 @@ import {
 import "./Auth.css";
 import axios from "axios";
 import { UserContext } from "../context/UserContext";
+import toast from "react-hot-toast";
 
 const CustomerLogin = () => {
   const [username, setUsername] = useState("");
@@ -70,10 +72,12 @@ const CustomerLogin = () => {
       });
       await fetchProfile(); // Refresh user profile after login
       setError("");
+      toast.success("Login successful!");
       navigate("/customer-dashboard");
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Failed to login. " + err);
+      const errMsg = getApiErrorMessage(err, "Unexpected error occurred.");
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }

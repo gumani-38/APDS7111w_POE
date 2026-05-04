@@ -8,6 +8,7 @@ import {
 } from "../utils/validation";
 import "./Auth.css";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const CustomerRegister = () => {
   const [form, setForm] = useState({
@@ -54,11 +55,12 @@ const CustomerRegister = () => {
 
     try {
       await axios.post("/api/user/register", form);
+      toast.success("Registration successful!");
       navigate("/");
     } catch (err) {
-      setError(
-        getApiErrorMessage(err, "Registration failed. Please try again."),
-      );
+      const errMsg = getApiErrorMessage(err, "Unexpected error occurred.");
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
