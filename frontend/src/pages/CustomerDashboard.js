@@ -11,9 +11,10 @@ import { getApiErrorMessage } from "../utils/validation";
 
 const CustomerDashboard = () => {
   const [payments, setPayments] = useState([]);
-  const { logout } = useContext(UserContext);
+  const { logout, user, ready } = useContext(UserContext);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -21,6 +22,13 @@ const CustomerDashboard = () => {
     fetchPayments();
   }, []);
 
+  if (!ready) {
+    return <div>Loading...</div>;
+  }
+  if (ready && !user) {
+    navigate("/");
+    return null;
+  }
   const fetchPayments = async () => {
     try {
       setError("");
