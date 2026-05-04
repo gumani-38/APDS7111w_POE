@@ -121,7 +121,15 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: err });
   }
 });
-router.get("/logout", AuthorizedUser, async (req, res) => {
+// rate limiter for profile route to prevent brute-force attacks
+const loginLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 60 minutes
+  max: 7, // 7 attempts per window
+  message: "Too many login attempts. Please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.get("/logout", loginLimiter, AuthorizedUser, async (req, res) => {
   try {
     res.clearCookie("token");
     res.status(200).json("Logout successful");
@@ -131,15 +139,7 @@ router.get("/logout", AuthorizedUser, async (req, res) => {
   }
 });
 
-// rate limiter for profile route to prevent brute-force attacks
-const loginLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 60 minutes
-  max: 7, // 7 attempts per window
-  message: "Too many login attempts. Please try again later.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-router.get("/profile", loginLimiter, AuthorizedUser, async (req, res) => {
+router.get("/profile", AuthorizedUser, async (req, res) => {
   try {
     const customerId = req.user.customerId;
     const sql =
