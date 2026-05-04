@@ -11,7 +11,8 @@ export function UserContextProvider({ children }) {
     if (!user) {
       fetchProfile();
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // force run once
   const fetchProfile = async () => {
     try {
       const { data } = await axios.get("/api/user/profile");
