@@ -8,10 +8,8 @@ export function UserContextProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      fetchProfile();
-    }
-  }, [user]);
+    fetchProfile();
+  }, []);
   const fetchProfile = async () => {
     try {
       const { data } = await axios.get("/api/user/profile");
