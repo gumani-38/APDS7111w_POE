@@ -47,7 +47,7 @@ router.post("/register", async (req, res) => {
       accountNumber,
     ]);
     if (userFound.length > 0) {
-      return res.status(400).json("User already exists");
+      return res.status(400).json({ error: "User already exists" });
     }
 
     const sqlInsert =
