@@ -99,11 +99,11 @@ export const validateOtp = (otp) => {
   return {};
 };
 
-export const validateEmployeeLogin = ({ employeeNumber, password }) => {
+export const validateEmployeeLogin = ({ username, password }) => {
   const errors = {};
 
-  if (!patterns.employeeNumber.test(employeeNumber)) {
-    errors.employeeNumber = "Use format EMP followed by 3-6 digits.";
+  if (!patterns.username.test(username)) {
+    errors.username = "Enter a valid email address.";
   }
 
   if (!password) {

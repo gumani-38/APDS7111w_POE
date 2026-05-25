@@ -8,6 +8,9 @@ export function UserContextProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (window.location.pathname.includes("employee")) {
+      return;
+    }
     if (!user) {
       fetchProfile();
     }
