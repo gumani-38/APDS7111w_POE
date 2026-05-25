@@ -108,7 +108,7 @@ router.post("/login", async (req, res) => {
       username: result[0].username,
       role: "customer",
     });
-    res.cookie("token", token, {
+    res.cookie("customerToken", token, {
       httpOnly: true, // Prevents client-side JS from accessing the cookie (XSS protection)
       secure: true, // Use true for HTTPS in production
       sameSite: "none", // Protects against CSRF
@@ -123,15 +123,18 @@ router.post("/login", async (req, res) => {
 });
 // rate limiter for profile route to prevent brute-force attacks
 const loginLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 60 minutes
+  windowMs: 10 * 60 * 1000, // 10 minutes
   max: 7, // 7 attempts per window
-  message: "Too many login attempts. Please try again later .",
+  message: {
+    error:
+      "Too many login attempts. Please try again later after 10 minutesss.",
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
 router.get("/logout", loginLimiter, AuthorizedUser, async (req, res) => {
   try {
-    res.clearCookie("token");
+    res.clearCookie("customerToken");
     res.status(200).json("Logout successful");
   } catch (err) {
     console.log(" error while logging out", err);

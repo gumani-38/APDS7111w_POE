@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   hasErrors,
@@ -6,18 +6,27 @@ import {
   validateEmployeeLogin,
 } from "../utils/validation";
 import "./Auth.css";
+import axios from "axios";
+import { EmployeeContext } from "../context/EmployeeContext";
 
 const EmployeeLogin = () => {
-  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { employee, ready, fetchProfile } = useContext(EmployeeContext);
   const navigate = useNavigate();
 
-  const handleEmployeeNumberChange = (value) => {
-    setEmployeeNumber(sanitizers.employeeNumber(value));
-    setErrors((prev) => ({ ...prev, employeeNumber: "" }));
+  useEffect(() => {
+    if (ready && employee) {
+      navigate("/employee-dashboard");
+    }
+  }, [ready, employee, navigate]);
+
+  const handleUsernameChange = (value) => {
+    setUsername(sanitizers.email(value));
+    setErrors((prev) => ({ ...prev, username: "" }));
     setError("");
   };
 
@@ -28,22 +37,23 @@ const EmployeeLogin = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const validationErrors = validateEmployeeLogin({
-      employeeNumber,
-      password,
-    });
-    setErrors(validationErrors);
-
-    if (hasErrors(validationErrors)) {
-      setError("Please correct the highlighted fields.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError("");
-
     try {
+      e.preventDefault();
+      const validationErrors = validateEmployeeLogin({
+        username,
+        password,
+      });
+      setErrors(validationErrors);
+
+      if (hasErrors(validationErrors)) {
+        setError("Please correct the highlighted fields.");
+        return;
+      }
+      setError("");
+      setIsSubmitting(true);
+      await axios.post("/api/employee/login", { username, password });
+      await fetchProfile();
+
       navigate("/employee-dashboard");
     } catch (err) {
       setError(
@@ -66,17 +76,17 @@ const EmployeeLogin = () => {
         )}
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label htmlFor="employeeNumber">Employee Number</label>
+            <label htmlFor="username">Employee Username</label>
             <input
-              id="employeeNumber"
+              id="username"
               type="text"
-              placeholder="EMP001"
-              value={employeeNumber}
-              onChange={(e) => handleEmployeeNumberChange(e.target.value)}
+              placeholder="Username"
+              value={username}
+              onChange={(e) => handleUsernameChange(e.target.value)}
               required
             />
-            {errors.employeeNumber && (
-              <span className="field-error">{errors.employeeNumber}</span>
+            {errors.username && (
+              <span className="field-error">{errors.username}</span>
             )}
           </div>
           <div className="form-group">

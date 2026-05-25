@@ -162,7 +162,7 @@ const CustomerRegister = () => {
           </button>
         </form>
         <p className="auth-link">
-          <a href="/customer-login">Already have account? Login</a>
+          <a href="/">Already have account? Login</a>
         </p>
       </div>
     </div>

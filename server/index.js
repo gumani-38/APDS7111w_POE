@@ -40,13 +40,13 @@ const limiter = rateLimit({
   max: 200, // limit each IP to 200 requests per 2 minutes
   standardHeaders: true, // send combined RateLimit header
   legacyHeaders: false, // disable X-RateLimit-* headers
-  message: "Too many requests from this IP, please try again later.",
+  message: { error: "Too many requests from this IP, please try again later." },
 });
 // Apply the rate limiting middleware to all requests.
 app.use(limiter);
 app.use("/api/user", userRoute);
 app.use("/api/transaction", transactionRoute);
-// app.use("/api/employee", employeeRoute);
+app.use("/api/employee", employeeRoute);
 
 // const sslOptions = {
 //   key: fs.readFileSync(path.join(__dirname, "keys", "privatekey.pem")),

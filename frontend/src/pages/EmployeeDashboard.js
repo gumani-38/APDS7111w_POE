@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import EmployeePaymentModal from "../components/EmployeePaymentModal";
-import { sanitizers } from "../utils/validation";
+import { getApiErrorMessage, sanitizers } from "../utils/validation";
 import "./Dashboard.css";
-
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useContext } from "react";
+import { EmployeeContext } from "../context/EmployeeContext";
+import { Navigate } from "react-router-dom";
 const EmployeeDashboard = () => {
   const [payments, setPayments] = useState([]);
+  const { employee, ready, logout } = useContext(EmployeeContext);
   const [filter, setFilter] = useState({
     status: "pending",
     search: "",
@@ -13,17 +18,26 @@ const EmployeeDashboard = () => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (ready && !employee) {
+      toast.error("Unauthorized access. Please log in as an employee.");
+      return <Navigate to="/employee-login" replace />;
+    }
+  }, [ready, employee]);
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     setError("");
 
     try {
-      // const res = await api.get('/employee/pending-payments', { params: filter });
-      //   setPayments(res.data);
+      const { data } = await axios.get("/api/employee/pending-payments", {
+        params: filter,
+      });
+      setPayments(data);
     } catch (err) {
-      // setError(getApiErrorMessage(err, 'Could not load pending payments.'));
-      console.log(err);
+      const errMsg = getApiErrorMessage(err, "Failed to fetch payments.");
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -35,31 +49,31 @@ const EmployeeDashboard = () => {
 
   const handleAction = async (id, action, reason = "") => {
     try {
-      //   const res = await api.post(`/employee/payments/${id}/${action}`, {
-      //     reason,
-      //   });
-      //   fetchPayments();
-      //   if (action === "submit" && res.data.uetr) return { uetr: res.data.uetr };
-      //   setSelectedPayment(null);
+      await axios.patch(`/api/employee/verify-payment/${id}`, {
+        action,
+      });
+      fetchPayments();
       return {};
     } catch (err) {
-      //   const message = getApiErrorMessage(err, "Action failed.");
-      //   setError(message);
-      //   return { error: message };
+      const errMsg = getApiErrorMessage(
+        err,
+        "Failed to update payment status.",
+      );
+      toast.error(errMsg);
+      return { error: errMsg };
     }
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Employee Portal – Pending Payments</h2>
-      {error && (
-        <div className="form-error" role="alert">
-          {error}
-        </div>
-      )}
-      <div
-        style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}
-      >
+    <div className="employee-dashboard">
+      <h2 className="dashboard-title">Employee Portal –Payments Processing</h2>
+      {/* // logout button */}
+      <button className="logout-button" onClick={logout}>
+        Logout
+      </button>
+
+      {error && <div className="form-error">{error}</div>}
+      <div className="filter-bar">
         <input
           type="text"
           placeholder="Search by ID or customer"
@@ -74,6 +88,7 @@ const EmployeeDashboard = () => {
           <option value="pending">Pending</option>
           <option value="verified">Verified</option>
           <option value="rejected">Rejected</option>
+          <option value="submitted">Submitted</option>
         </select>
         <select
           onChange={(e) => setFilter({ ...filter, currency: e.target.value })}
@@ -84,36 +99,44 @@ const EmployeeDashboard = () => {
           <option>EUR</option>
           <option>ZAR</option>
         </select>
-        <button onClick={fetchPayments} disabled={loading}>
-          {loading ? "Loading..." : "Refresh"}
-        </button>
       </div>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Customer</th>
-            <th>Amount</th>
-            <th>Currency</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {payments.map((p) => (
-            <tr key={p.id}>
-              <td>{p.id}</td>
-              <td>{p.customerName || p.customerId}</td>
-              <td>{p.amount}</td>
-              <td>{p.currency}</td>
-              <td>{p.status}</td>
-              <td>
-                <button onClick={() => setSelectedPayment(p)}>Verify</button>
-              </td>
+      <div className="table-container">
+        <table className="payments-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Currency</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {payments.map((p, index) => (
+              <tr key={index}>
+                <td data-label="ID">{p.transactionId}</td>
+                <td data-label="Customer">
+                  {p.firstName} {p.lastName}
+                </td>
+                <td data-label="Amount">{p.amount}</td>
+                <td data-label="Currency">{p.currency}</td>
+                <td data-label="Status">{p.status}</td>
+                <td data-label="Action">
+                  <button onClick={() => setSelectedPayment(p)}>
+                    {/* // if status  pending show Verify, if verified show Submit, else show View */}
+                    {p.status === "pending"
+                      ? "Verify"
+                      : p.status === "verified"
+                        ? "Submit to SWIFT"
+                        : "View"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {selectedPayment && (
         <EmployeePaymentModal
           payment={selectedPayment}
@@ -122,6 +145,7 @@ const EmployeeDashboard = () => {
             fetchPayments();
           }}
           onAction={handleAction}
+          s
         />
       )}
     </div>

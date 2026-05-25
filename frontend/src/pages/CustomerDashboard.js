@@ -44,15 +44,15 @@ const CustomerDashboard = () => {
     return null;
   }
   const getStatusColor = (status) => {
-    switch (status) {
-      case "settled":
-        return "#4caf50";
-      case "rejected":
-        return "#f44336";
+    switch (status.toLowerCase()) {
       case "verified":
-        return "#2196f3";
+        return "#007bff"; // blue
+      case "pending":
+        return "#ffa500"; // orange
+      case "submitted":
+        return "#28a745"; // green
       default:
-        return "#ff9800";
+        return "#6c757d"; // gray for unknown
     }
   };
 
@@ -117,7 +117,17 @@ const CustomerDashboard = () => {
                 <td data-label="Status">
                   <span
                     className="status-badge"
-                    style={{ backgroundColor: getStatusColor(p.status) }}
+                    style={{
+                      backgroundColor: getStatusColor(p.status),
+                      color: "#fff",
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontWeight: "600",
+                      textTransform: "capitalize",
+                      display: "inline-block",
+                      minWidth: "80px",
+                      textAlign: "center",
+                    }}
                   >
                     {p.status}
                   </span>

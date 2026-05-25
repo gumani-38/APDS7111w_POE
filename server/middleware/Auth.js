@@ -9,7 +9,7 @@ const generateAuthToken = (user) => {
 };
 
 function AuthorizedUser(req, res, next) {
-  const token = req.cookies.token;
+  const token = req.cookies.customerToken;
   if (!token) return res.status(401).send("Access Denied");
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ message: "Unauthorized" });
@@ -22,7 +22,7 @@ function AuthorizedUser(req, res, next) {
 }
 
 function AuthorizedEmployee(req, res, next) {
-  const token = req.cookies.token;
+  const token = req.cookies.employeeToken;
   if (!token) return res.status(401).send("Access Denied");
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ message: "Unauthorized" });
