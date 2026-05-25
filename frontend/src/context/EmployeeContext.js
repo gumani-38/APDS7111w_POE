@@ -11,7 +11,7 @@ export function EmployeeContextProvider({ children }) {
     if (!employee) {
       fetchProfile();
     }
-  }, []);
+  }, [employee]);
   const fetchProfile = async () => {
     try {
       const { data } = await axios.get("/api/employee/profile");
