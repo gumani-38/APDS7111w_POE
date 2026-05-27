@@ -10,6 +10,8 @@ import "./Auth.css";
 import axios from "axios";
 import { UserContext } from "../context/UserContext";
 import toast from "react-hot-toast";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons"; // Added explicit icon imports
 
 const CustomerLogin = () => {
   const [username, setUsername] = useState("");
@@ -19,7 +21,9 @@ const CustomerLogin = () => {
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     if (ready && user) {
       navigate("/customer-dashboard");
@@ -41,6 +45,7 @@ const CustomerLogin = () => {
     setErrors((prev) => ({ ...prev, password: "" }));
     setError("");
   };
+
   const handleAccountNumberChange = (value) => {
     setAccountNumber(sanitizers.digits(value, 10));
     setErrors((prev) => ({ ...prev, accountNumber: "" }));
@@ -70,7 +75,7 @@ const CustomerLogin = () => {
         accountNumber,
         password,
       });
-      await fetchProfile(); // Refresh user profile after login
+      await fetchProfile();
       setError("");
       toast.success("Login successful!");
       navigate("/customer-dashboard");
@@ -92,7 +97,6 @@ const CustomerLogin = () => {
             {error}
           </div>
         )}
-        {/* {step === "password" ? ( */}
         <form onSubmit={handlePasswordSubmit} noValidate>
           <div className="form-group">
             <label htmlFor="username">Username</label>
@@ -108,33 +112,45 @@ const CustomerLogin = () => {
               <span className="field-error">{errors.username}</span>
             )}
           </div>
+
           <div className="form-group">
-            <label htmlFor="username">Account Number</label>
+            <label htmlFor="accountNumber">Account Number</label>
             <input
               id="accountNumber"
               type="text"
               value={accountNumber}
               onChange={(e) => handleAccountNumberChange(e.target.value)}
               required
-              autoFocus
             />
             {errors.accountNumber && (
               <span className="field-error">{errors.accountNumber}</span>
             )}
           </div>
-          <div className="form-group">
+
+          <div className="form-group password-group">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
-              required
-            />
+            <div className="password-input-wrapper">
+              <input
+                id="password"
+                type={isPasswordVisible ? "text" : "password"}
+                value={password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                required
+              />
+              <span
+                className="password-toggle-btn"
+                onClick={() => setIsPasswordVisible((prev) => !prev)}
+              >
+                <FontAwesomeIcon
+                  icon={isPasswordVisible ? faEye : faEyeSlash}
+                />
+              </span>
+            </div>
             {errors.password && (
               <span className="field-error">{errors.password}</span>
             )}
           </div>
+
           <button type="submit" className="auth-button" disabled={isSubmitting}>
             {isSubmitting ? "Logging in..." : "Login"}
           </button>

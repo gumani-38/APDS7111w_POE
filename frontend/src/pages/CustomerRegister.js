@@ -9,6 +9,8 @@ import {
 import "./Auth.css";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const CustomerRegister = () => {
   const [form, setForm] = useState({
@@ -22,6 +24,7 @@ const CustomerRegister = () => {
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
 
   const sanitizeField = (name, value) => {
@@ -143,16 +146,26 @@ const CustomerRegister = () => {
               <span className="field-error">{errors.username}</span>
             )}
           </div>
-          <div className="form-group">
+          <div className="form-group password-group">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
+            <div className="password-input-wrapper">
+              <input
+                id="password"
+                name="password"
+                type={isPasswordVisible ? "text" : "password"}
+                value={form.password}
+                onChange={handleChange}
+                required
+              />
+              <span
+                className="password-toggle-btn"
+                onClick={() => setIsPasswordVisible((prev) => !prev)}
+              >
+                <FontAwesomeIcon
+                  icon={isPasswordVisible ? faEye : faEyeSlash}
+                />
+              </span>
+            </div>
             {errors.password && (
               <span className="field-error">{errors.password}</span>
             )}
