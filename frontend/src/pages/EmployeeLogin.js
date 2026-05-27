@@ -8,13 +8,15 @@ import {
 import "./Auth.css";
 import axios from "axios";
 import { EmployeeContext } from "../context/EmployeeContext";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons"; // Added explicit icon imports
 const EmployeeLogin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const { employee, ready, fetchProfile } = useContext(EmployeeContext);
   const navigate = useNavigate();
 
@@ -89,15 +91,25 @@ const EmployeeLogin = () => {
               <span className="field-error">{errors.username}</span>
             )}
           </div>
-          <div className="form-group">
-            <label htmlFor="employeePassword">Password</label>
-            <input
-              id="employeePassword"
-              type="password"
-              value={password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
-              required
-            />
+          <div className="form-group password-group">
+            <label htmlFor="password">Password</label>
+            <div className="password-input-wrapper">
+              <input
+                id="password"
+                type={isPasswordVisible ? "text" : "password"}
+                value={password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                required
+              />
+              <span
+                className="password-toggle-btn"
+                onClick={() => setIsPasswordVisible((prev) => !prev)}
+              >
+                <FontAwesomeIcon
+                  icon={isPasswordVisible ? faEye : faEyeSlash}
+                />
+              </span>
+            </div>
             {errors.password && (
               <span className="field-error">{errors.password}</span>
             )}

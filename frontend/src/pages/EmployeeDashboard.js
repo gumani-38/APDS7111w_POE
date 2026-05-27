@@ -23,7 +23,14 @@ const EmployeeDashboard = () => {
       toast.error("Unauthorized access. Please log in as an employee.");
       return <Navigate to="/employee-login" replace />;
     }
-  }, [ready, employee]);
+    if (loading) {
+      return (
+        <div className="employee-dashboard">
+          <h2 className="dashboard-title">Loading payments...</h2>
+        </div>
+      );
+    }
+  }, [ready, employee, loading]);
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
