@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import EmployeePaymentModal from "../components/EmployeePaymentModal";
 import { getApiErrorMessage, sanitizers } from "../utils/validation";
 import "./Dashboard.css";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useContext } from "react";
 import { EmployeeContext } from "../context/EmployeeContext";
 import { Navigate } from "react-router-dom";
 const EmployeeDashboard = () => {
   const [payments, setPayments] = useState([]);
-  const { employee, ready, logout } = useContext(EmployeeContext);
   const [filter, setFilter] = useState({
     status: "pending",
     search: "",
     currency: "",
   });
+  const { employee, ready, logout } = useContext(EmployeeContext);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
