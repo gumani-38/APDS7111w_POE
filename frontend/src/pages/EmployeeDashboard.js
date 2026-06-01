@@ -119,7 +119,7 @@ const EmployeeDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {payments.map((p, index) => (
+            {payments?.map((p, index) => (
               <tr key={index}>
                 <td data-label="ID">{p.transactionId}</td>
                 <td data-label="Customer">

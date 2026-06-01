@@ -8,6 +8,11 @@ export function EmployeeContextProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    // 🔽 Add this block to prevent unauthorized API requests on customer pages
+    if (!window.location.pathname.includes("employee")) {
+      setReady(true); // Mark ready so routing isn't blocked
+      return;
+    }
     if (!employee) {
       fetchProfile();
     }
