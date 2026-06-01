@@ -64,6 +64,25 @@ Press Enter through all the prompts.
 ```bash
 node index.js or nodemon index.js if installed
 ```
+
+## Employee Dummy Built Credentials
+const data = [
+      {
+        fullName: "Thato Ramokgopa",
+        username: "thatoramokgopa@gmail.com",
+        password: "Thato@12Ramo*!",
+      },
+      {
+        fullName: "Mpho Mokoena",
+        username: "mphomokoena@gmail.com",
+        password: "Mpho@12Moko*!",
+      },
+      {
+        fullName: "Sipho Dlamini",
+        username: "siphodlamini@gmail.com",
+        password: "Sipho@12Dlam*!",
+      },
+    ];
 ### 6. Run the frontend
 ```bash
 npm start
