@@ -10,11 +10,11 @@ const generateAuthToken = (user) => {
 
 function AuthorizedUser(req, res, next) {
   const token = req.cookies.customerToken;
-  if (!token) return res.status(401).send("Access Denied");
+  if (!token) return res.status(401).send({ error: "Access Denied" });
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: "Unauthorized" });
+    if (err) return res.status(401).json({ error: "Unauthorized" });
     if (decoded.role !== "customer") {
-      return res.status(403).json({ message: "Forbidden: customers only" });
+      return res.status(403).json({ error: "Forbidden: customers only" });
     }
     req.user = decoded;
     next();
@@ -23,11 +23,11 @@ function AuthorizedUser(req, res, next) {
 
 function AuthorizedEmployee(req, res, next) {
   const token = req.cookies.employeeToken;
-  if (!token) return res.status(401).send("Access Denied");
+  if (!token) return res.status(401).send({ error: "Access Denied" });
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: "Unauthorized" });
+    if (err) return res.status(401).json({ error: "Unauthorized" });
     if (decoded.role !== "employee") {
-      return res.status(403).json({ message: "Forbidden: employees only" });
+      return res.status(403).json({ error: "Forbidden: employees only" });
     }
     req.user = decoded;
     next();
