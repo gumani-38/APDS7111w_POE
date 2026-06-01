@@ -53,10 +53,10 @@ router.post("/login", loginLimiter, async (req, res) => {
     });
 
     res.cookie("employeeToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 720000,
+      httpOnly: true, // Prevents client-side JS from accessing the cookie (XSS protection)
+      secure: true, // Use true for HTTPS in production
+      sameSite: "none", // Protects against CSRFs
+      maxAge: 720000, // 12 minutes in milliseconds
     });
 
     res.status(200).json("Login successful");
