@@ -17,7 +17,7 @@ export function EmployeeContextProvider({ children }) {
       const { data } = await axios.get("/api/employee/profile");
       setEmployee(data);
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.log("Error fetching profile:", error);
       setEmployee(null);
     } finally {
       setReady(true);
@@ -29,7 +29,7 @@ export function EmployeeContextProvider({ children }) {
       await axios.get("/api/employee/logout");
       setEmployee(null);
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.log("Error logging out:", error);
     }
   };
   return (

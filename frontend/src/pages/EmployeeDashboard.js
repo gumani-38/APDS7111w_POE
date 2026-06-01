@@ -19,15 +19,15 @@ const EmployeeDashboard = () => {
   const [error, setError] = useState("");
 
   const fetchPayments = useCallback(async () => {
-    setLoading(true);
-    setError("");
-
     try {
+      setLoading(true);
+      setError("");
       const { data } = await axios.get("/api/employee/pending-payments", {
         params: filter,
       });
       setPayments(data);
     } catch (err) {
+      console.log(err);
       const errMsg = getApiErrorMessage(err, "Failed to fetch payments.");
       setError(errMsg);
       toast.error(errMsg);
