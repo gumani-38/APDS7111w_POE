@@ -9,6 +9,7 @@ export function UserContextProvider({ children }) {
 
   useEffect(() => {
     if (window.location.pathname.includes("employee")) {
+      setReady(true); // Mark ready so routing isn't blocked on employee pages
       return;
     }
     if (!user) {

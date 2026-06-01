@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import EmployeePaymentModal from "../components/EmployeePaymentModal";
 import { getApiErrorMessage, sanitizers } from "../utils/validation";
 import "./Dashboard.css";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useContext } from "react";
 import { EmployeeContext } from "../context/EmployeeContext";
 import { Navigate } from "react-router-dom";
+
 const EmployeeDashboard = () => {
-  const [payments, setPayments] = useState([]);
   const { employee, ready, logout } = useContext(EmployeeContext);
+
+  const [payments, setPayments] = useState([]);
   const [filter, setFilter] = useState({
     status: "pending",
     search: "",
@@ -18,21 +19,10 @@ const EmployeeDashboard = () => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => {
-    if (ready && !employee) {
-      toast.error("Unauthorized access. Please log in as an employee.");
-      return <Navigate to="/employee-login" replace />;
-    }
-    if (loading) {
-      return (
-        <div className="employee-dashboard">
-          <h2 className="dashboard-title">Loading payments...</h2>
-        </div>
-      );
-    }
-  }, [ready, employee, loading]);
 
-  const fetchPayments = useCallback(async () => {
+  // ✅ Plain function (no useCallback)
+  const fetchPayments = async () => {
+    if (!ready || !employee) return; // guard against premature calls
     setLoading(true);
     setError("");
 
@@ -42,23 +32,40 @@ const EmployeeDashboard = () => {
       });
       setPayments(data);
     } catch (err) {
+      console.error("Fetch error:", err);
       const errMsg = getApiErrorMessage(err, "Failed to fetch payments.");
       setError(errMsg);
       toast.error(errMsg);
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  };
 
+  // ✅ Trigger fetch when ready or filter changes
   useEffect(() => {
     fetchPayments();
-  }, [fetchPayments]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, employee, filter]);
 
+  // ✅ Redirect if unauthorized
+  if (ready && !employee) {
+    return <Navigate to="/employee-login" replace />;
+  }
+
+  // ✅ Loading state
+  if (loading) {
+    return (
+      <div className="employee-dashboard">
+        <h2 className="dashboard-title">Loading payments...</h2>
+      </div>
+    );
+  }
+
+  // ✅ Handle payment actions
   const handleAction = async (id, action, reason = "") => {
     try {
-      await axios.patch(`/api/employee/verify-payment/${id}`, {
-        action,
-      });
+      await axios.patch(`/api/employee/verify-payment/${id}`, { action });
+      toast.success("Payment status updated.");
       fetchPayments();
       return {};
     } catch (err) {
@@ -73,13 +80,19 @@ const EmployeeDashboard = () => {
 
   return (
     <div className="employee-dashboard">
-      <h2 className="dashboard-title">Employee Portal –Payments Processing</h2>
-      {/* // logout button */}
-      <button className="logout-button" onClick={logout}>
+      <h2 className="dashboard-title">Employee Portal – Payments Processing</h2>
+
+      {/* ✅ Logout button with safety guard */}
+      <button
+        className="logout-button"
+        onClick={() => typeof logout === "function" && logout()}
+      >
         Logout
       </button>
 
       {error && <div className="form-error">{error}</div>}
+
+      {/* ✅ Filters */}
       <div className="filter-bar">
         <input
           type="text"
@@ -107,6 +120,8 @@ const EmployeeDashboard = () => {
           <option>ZAR</option>
         </select>
       </div>
+
+      {/* ✅ Payments table */}
       <div className="table-container">
         <table className="payments-table">
           <thead>
@@ -120,30 +135,39 @@ const EmployeeDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {payments.map((p, index) => (
-              <tr key={index}>
-                <td data-label="ID">{p.transactionId}</td>
-                <td data-label="Customer">
-                  {p.firstName} {p.lastName}
-                </td>
-                <td data-label="Amount">{p.amount}</td>
-                <td data-label="Currency">{p.currency}</td>
-                <td data-label="Status">{p.status}</td>
-                <td data-label="Action">
-                  <button onClick={() => setSelectedPayment(p)}>
-                    {/* // if status  pending show Verify, if verified show Submit, else show View */}
-                    {p.status === "pending"
-                      ? "Verify"
-                      : p.status === "verified"
-                        ? "Submit to SWIFT"
-                        : "View"}
-                  </button>
+            {payments.length > 0 ? (
+              payments.map((p, index) => (
+                <tr key={index}>
+                  <td data-label="ID">{p.transactionId}</td>
+                  <td data-label="Customer">
+                    {p.firstName} {p.lastName}
+                  </td>
+                  <td data-label="Amount">{p.amount}</td>
+                  <td data-label="Currency">{p.currency}</td>
+                  <td data-label="Status">{p.status}</td>
+                  <td data-label="Action">
+                    <button onClick={() => setSelectedPayment(p)}>
+                      {p.status === "pending"
+                        ? "Verify"
+                        : p.status === "verified"
+                          ? "Submit to SWIFT"
+                          : "View"}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center" }}>
+                  No payments found.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* ✅ Modal */}
       {selectedPayment && (
         <EmployeePaymentModal
           payment={selectedPayment}
@@ -152,7 +176,6 @@ const EmployeeDashboard = () => {
             fetchPayments();
           }}
           onAction={handleAction}
-          s
         />
       )}
     </div>

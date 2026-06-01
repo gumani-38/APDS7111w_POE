@@ -8,6 +8,11 @@ export function EmployeeContextProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    // 🔽 Add this block to prevent unauthorized API requests on customer pages
+    if (!window.location.pathname.includes("employee")) {
+      setReady(true); // Mark ready so routing isn't blocked
+      return;
+    }
     if (!employee) {
       fetchProfile();
     }
@@ -17,7 +22,7 @@ export function EmployeeContextProvider({ children }) {
       const { data } = await axios.get("/api/employee/profile");
       setEmployee(data);
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.log("Error fetching profile:", error);
       setEmployee(null);
     } finally {
       setReady(true);
@@ -29,7 +34,7 @@ export function EmployeeContextProvider({ children }) {
       await axios.get("/api/employee/logout");
       setEmployee(null);
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.log("Error logging out:", error);
     }
   };
   return (
