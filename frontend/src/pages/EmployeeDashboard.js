@@ -18,19 +18,6 @@ const EmployeeDashboard = () => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => {
-    if (ready && !employee) {
-      toast.error("Unauthorized access. Please log in as an employee.");
-      return <Navigate to="/employee-login" replace />;
-    }
-    if (loading) {
-      return (
-        <div className="employee-dashboard">
-          <h2 className="dashboard-title">Loading payments...</h2>
-        </div>
-      );
-    }
-  }, [ready, employee, loading]);
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
@@ -51,8 +38,21 @@ const EmployeeDashboard = () => {
   }, [filter]);
 
   useEffect(() => {
-    fetchPayments();
-  }, [fetchPayments]);
+    if (ready && employee) {
+      fetchPayments();
+    }
+  }, [fetchPayments, ready, employee]);
+
+  if (ready && !employee) {
+    return <Navigate to="/employee-login" replace />;
+  }
+  if (loading) {
+    return (
+      <div className="employee-dashboard">
+        <h2 className="dashboard-title">Loading payments...</h2>
+      </div>
+    );
+  }
 
   const handleAction = async (id, action, reason = "") => {
     try {
@@ -152,7 +152,6 @@ const EmployeeDashboard = () => {
             fetchPayments();
           }}
           onAction={handleAction}
-          s
         />
       )}
     </div>
