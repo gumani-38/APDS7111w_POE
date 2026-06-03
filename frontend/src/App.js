@@ -1,0 +1,72 @@
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import CustomerRegister from "./pages/CustomerRegister";
+import CustomerLogin from "./pages/CustomerLogin";
+import CustomerDashboard from "./pages/CustomerDashboard";
+import EmployeeLogin from "./pages/EmployeeLogin";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
+import { Toaster } from "react-hot-toast";
+import axios from "axios";
+import { UserContextProvider } from "./context/UserContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { EmployeeContextProvider } from "./context/EmployeeContext";
+import EmployeeProtectedRoute from "./components/EmployeeProtectedRoute";
+// set base URL for all axios requests
+axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL;
+// add credentials to all requests
+axios.defaults.withCredentials = true;
+//detect if your application is being framed and break out of it.
+const useFrameBusting = () => {
+  useEffect(() => {
+    if (window.self !== window.top) {
+      window.top.location.href = window.self.location.href;
+    }
+  }, []);
+};
+function App() {
+  useFrameBusting();
+  return (
+    <UserContextProvider>
+      <EmployeeContextProvider>
+        <BrowserRouter
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
+          <Routes>
+            <Route path="/customer-register" element={<CustomerRegister />} />
+            <Route
+              path="/customer-dashboard"
+              element={
+                <ProtectedRoute>
+                  <CustomerDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="/employee-login" element={<EmployeeLogin />} />
+            <Route
+              path="/employee-dashboard"
+              element={
+                <EmployeeProtectedRoute>
+                  <EmployeeDashboard />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route path="/" element={<CustomerLogin />} />
+          </Routes>
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            toastOptions={{
+              // Define default options
+              className: "",
+              duration: 5000,
+              removeDelay: 1000, // delay before removing the toast
+            }}
+          />
+        </BrowserRouter>
+      </EmployeeContextProvider>
+    </UserContextProvider>
+  );
+}
+
+export default App;
