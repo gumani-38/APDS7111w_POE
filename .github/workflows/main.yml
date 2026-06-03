@@ -1,4 +1,4 @@
-name: Node & React CI/CD
+name: Node & React DevSecOps Pipeline
 
 on:
   push:
@@ -7,8 +7,58 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # Job for the React Frontend
+  # =======================================================
+  # STAGE 1: AUTOMATED SECURITY SCANS (SAST & SCA)
+  # =======================================================
+  
+  static-analysis:
+    name: CodeQL Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'javascript-typescript'
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  dependency-audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Audit Frontend Packages
+        run: |
+          cd frontend
+          npm audit --audit-level=high
+
+      - name: Audit Server Packages
+        run: |
+          cd server
+          npm audit --audit-level=high
+
+  # =======================================================
+  # STAGE 2: APPLICATION BUILD VERIFICATION
+  # =======================================================
+
   frontend-build:
+    name: Frontend Build Check
+    needs: [static-analysis, dependency-audit]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,16 +73,14 @@ jobs:
           cache-dependency-path: './frontend/package-lock.json'
       
       - name: Install dependencies
-        run: npm install
-      
-      # - name: Run Tests
-      #  run: npm test -- --watchAll=false
+        run: npm ci
       
       - name: Build Project
         run: npm run build
 
-  # Job for the Node.js Server
   server-test:
+    name: Server Integrity Check
+    needs: [static-analysis, dependency-audit]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -47,4 +95,39 @@ jobs:
           cache-dependency-path: './server/package-lock.json'
           
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+  # =======================================================
+  # STAGE 3: CONTROLLED MULTI-PLATFORM DEPLOYMENT
+  # =======================================================
+  
+  deploy:
+    name: Production Deployment
+    needs: [frontend-build, server-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --- DEPLOY FRONTEND TO VERCEL ---
+      - name: Install Vercel CLI
+        run: npm install --global vercel
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy Frontend to Vercel
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      # --- DEPLOY BACKEND TO RENDER ---
+      - name: Deploy Server to Render
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
