@@ -18,7 +18,8 @@ jobs:
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.token=$SONAR_TOKEN \
               -Dsonar.projectKey=gumani-38_APDS7111w_POE \
-              -Dsonar.organization=gumani-38
+              -Dsonar.organization=gumani-38 \
+              -Dsonar.branch.name=main
 
   sonar-quality-gate:
     docker:
