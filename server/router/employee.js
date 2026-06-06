@@ -97,6 +97,7 @@ router.get("/pending-payments", AuthorizedEmployee, async (req, res) => {
         t.swiftCode,
         t.status,
         t.createdAt,
+        t.rejectedReason,
         c.firstName,
         c.lastName,
         c.accountNumber AS customerAccountNumber
@@ -164,7 +165,12 @@ router.get("/profile", AuthorizedEmployee, async (req, res) => {
 
 // PATCH /api/employee/verify-payment/:id
 const verifySchema = joi.object({
-  action: joi.string().valid("verify", "reject").required(),
+  action: joi.string().valid("verify", "rejected").required(),
+  reason: joi.string().min(5).max(255).when("action", {
+    is: "rejected",
+    then: joi.required(),
+    otherwise: joi.forbidden(),
+  }),
 });
 
 router.patch("/verify-payment/:id", AuthorizedEmployee, async (req, res) => {
@@ -196,13 +202,24 @@ router.patch("/verify-payment/:id", AuthorizedEmployee, async (req, res) => {
         .status(400)
         .json({ error: `Transaction already ${existing[0].status}` });
     }
+    // check if is a rection and reason is providedand and save reason in database
+    if (action === "rejected" && !req.body.reason) {
+      return res.status(400).json({ error: "Rejection reason is required" });
+    }
+
+    const rejectedReason = action === "rejected" ? req.body.reason : null;
 
     const sql = `
-      UPDATE Transactions 
-      SET status = ?, verifiedBy = ?, verifiedAt = CURRENT_TIMESTAMP 
-      WHERE transactionId = ?
-    `;
-    await db.execute(sql, [newStatus, employeeId, transactionId]);
+  UPDATE Transactions 
+  SET status = ?, verifiedBy = ?, verifiedAt = CURRENT_TIMESTAMP, rejectedReason = ?
+  WHERE transactionId = ?
+`;
+    await db.execute(sql, [
+      newStatus,
+      employeeId,
+      rejectedReason,
+      transactionId,
+    ]);
 
     res.status(200).json({ message: `Transaction ${newStatus} successfully` });
   } catch (err) {

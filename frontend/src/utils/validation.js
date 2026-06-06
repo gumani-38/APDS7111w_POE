@@ -19,7 +19,7 @@ export const sanitizers = {
       .replace(/\s/g, "") // remove spaces
       .toLowerCase() // normalize casing
       .slice(0, 254), // max email length per RFC
-  search: (value) => value.replace(/[^A-Za-z0-9 _-]/g, "").slice(0, 50),
+  search: (value) => value.replace(/[^A-Za-z0-9 _-]/g, "").slice(0, 100),
   employeeNumber: (value) =>
     value
       .replace(/[^A-Za-z0-9]/g, "")

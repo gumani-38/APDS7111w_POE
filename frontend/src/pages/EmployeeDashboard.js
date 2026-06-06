@@ -64,9 +64,12 @@ const EmployeeDashboard = () => {
   // ✅ Handle payment actions
   const handleAction = async (id, action, reason = "") => {
     try {
-      await axios.patch(`/api/employee/verify-payment/${id}`, { action });
+      await axios.patch(`/api/employee/verify-payment/${id}`, {
+        action,
+        reason,
+      });
       toast.success("Payment status updated.");
-      fetchPayments();
+      await fetchPayments();
       return {};
     } catch (err) {
       const errMsg = getApiErrorMessage(
@@ -128,9 +131,11 @@ const EmployeeDashboard = () => {
             <tr>
               <th>ID</th>
               <th>Customer</th>
+              <th>Beneficiary</th>
               <th>Amount</th>
               <th>Currency</th>
               <th>Status</th>
+              <th>Reason</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -142,9 +147,11 @@ const EmployeeDashboard = () => {
                   <td data-label="Customer">
                     {p.firstName} {p.lastName}
                   </td>
+                  <td data-label="Beneficiary">{p.payeeName}</td>
                   <td data-label="Amount">{p.amount}</td>
                   <td data-label="Currency">{p.currency}</td>
                   <td data-label="Status">{p.status}</td>
+                  <td data-label="Reason">{p.rejectedReason}</td>
                   <td data-label="Action">
                     <button onClick={() => setSelectedPayment(p)}>
                       {p.status === "pending"
@@ -158,7 +165,7 @@ const EmployeeDashboard = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center" }}>
+                <td colSpan="7" style={{ textAlign: "center" }}>
                   No payments found.
                 </td>
               </tr>
