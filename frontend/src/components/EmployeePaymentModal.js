@@ -28,7 +28,7 @@ const EmployeePaymentModal = ({ payment, onClose, onAction }) => {
     setIsSubmitting(true);
     const result = await onAction(
       payment.transactionId,
-      "reject",
+      "rejected",
       rejectReason.trim(),
     );
     setIsSubmitting(false);
