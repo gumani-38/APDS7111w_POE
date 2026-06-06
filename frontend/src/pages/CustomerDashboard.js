@@ -52,7 +52,7 @@ const CustomerDashboard = () => {
       case "submitted":
         return "#28a745"; // green
       default:
-        return "#6c757d"; // gray for unknown
+        return "#dc3545"; // red for rejected or any other status
     }
   };
 
@@ -101,6 +101,7 @@ const CustomerDashboard = () => {
               <th>Amount</th>
               <th>Beneficiary</th>
               <th>Status</th>
+              <th>Reason</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -132,6 +133,7 @@ const CustomerDashboard = () => {
                     {p.status}
                   </span>
                 </td>
+                <td data-label="Reason">{p.rejectedReason}</td>
                 <td data-label="Action">
                   <button
                     onClick={() => setSelectedPayment(p)}
@@ -182,6 +184,9 @@ const CustomerDashboard = () => {
             </p>
             <p>
               <strong>Status:</strong> {selectedPayment.status}
+            </p>
+            <p>
+              <strong>Reason:</strong> {selectedPayment.rejectedReason}
             </p>
             <TransactionTimeline currentStatus={selectedPayment.status} />
             <button onClick={() => setSelectedPayment(null)}>Close</button>
