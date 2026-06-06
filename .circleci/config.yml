@@ -12,15 +12,30 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run SonarQube Scanner and Wait for Quality Gate
+          name: Run SonarQube Scanner
           command: |
             sonar-scanner \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.token=$SONAR_TOKEN \
               -Dsonar.projectKey=gumani-38_APDS7111w_POE \
               -Dsonar.organization=gumani-38 \
-              -Dsonar.branch.name=main \
-              -Dsonar.qualitygate.wait=true
+              -Dsonar.branch.name=main
+
+  sonar-quality-gate:
+    docker:
+      - image: curlimages/curl:latest
+    steps:
+      - checkout
+      - run:
+          name: Check SonarQube Quality Gate status
+          command: |
+            # Fixed variable name from SONAR_HOST_URI to SONAR_HOST_URL
+            STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=gumani-38_APDS7111w_POE" | awk -F'"status":"' '{print $2}' | awk -F'"' '{print $1}')
+            echo "Quality Gate Status: $STATUS"
+            if [ "$STATUS" != "OK" ]; then
+              echo "Project failed the Quality Gate. Aborting Pipeline."
+              exit 1
+            fi
 
   dependency-audit:
     executor: node-executor
@@ -105,11 +120,14 @@ workflows:
           requires:
             - sonar-static-analysis
             - dependency-audit
+      - sonar-quality-gate:
+          requires:
+            - sonar-static-analysis
       - deploy:
           requires:
             - frontend-build
             - server-test
-            - sonar-static-analysis
+            - sonar-quality-gate
           filters:
             branches:
               only: main
