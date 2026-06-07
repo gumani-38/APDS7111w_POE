@@ -20,7 +20,7 @@ jobs:
               -Dsonar.host.url=https://sonarcloud.io \
               -Dsonar.token=$SONAR_TOKEN \
               -Dsonar.sources=frontend/src,server \
-              -Dsonar.branch.name=main
+              -Dsonar.branch.name=main \
               -Dsonar.qualitygate.wait=true
 
   dependency-audit:
