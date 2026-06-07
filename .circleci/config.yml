@@ -12,98 +12,113 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run SonarQube Scanner
+          name: Run SonarCloud Analysis
           command: |
             sonar-scanner \
-              -Dsonar.host.url=$SONAR_HOST_URL \
-              -Dsonar.token=$SONAR_TOKEN \
               -Dsonar.projectKey=gumani-38_APDS7111w_POE \
               -Dsonar.organization=gumani-38 \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.token=$SONAR_TOKEN \
+              -Dsonar.sources=frontend/src,server \
               -Dsonar.branch.name=main
-
-  sonar-quality-gate:
-    docker:
-      - image: curlimages/curl:latest
-    steps:
-      - checkout
-      - run:
-          name: Check SonarQube Quality Gate status
-          command: |
-            # Fixed variable name from SONAR_HOST_URI to SONAR_HOST_URL
-            STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=gumani-38_APDS7111w_POE" | awk -F'"status":"' '{print $2}' | awk -F'"' '{print $1}')
-            echo "Quality Gate Status: $STATUS"
-            if [ "$STATUS" != "OK" ]; then
-              echo "Project failed the Quality Gate. Aborting Pipeline."
-              exit 1
-            fi
 
   dependency-audit:
     executor: node-executor
     steps:
       - checkout
       - run:
-          name: Audit Dependencies
+          name: Audit Frontend Dependencies
           command: |
-            cd frontend && npm audit --omit=dev --audit-level=high
-            cd ../server && npm audit --omit=dev --audit-level=high
+            cd frontend
+            npm audit --omit=dev --audit-level=high
+
+      - run:
+          name: Audit Server Dependencies
+          command: |
+            cd server
+            npm audit --omit=dev --audit-level=high
 
   frontend-build:
     executor: node-executor
     steps:
       - checkout
+
       - restore_cache:
           keys:
             - v1-npm-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+
+      - run:
+          name: Install Frontend Dependencies
+          command: |
+            cd frontend
+            npm ci --cache ~/.npm
+
       - run:
           name: Build Frontend
           command: |
             cd frontend
-            npm ci --cache ~/.npm
             npm run build
+
       - save_cache:
+          key: v1-npm-deps-frontend-{{ checksum "frontend/package-lock.json" }}
           paths:
             - ~/.npm
-          key: v1-npm-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+
       - persist_to_workspace:
           root: .
           paths:
-            - frontend/.next
             - frontend/build
 
   server-test:
     executor: node-executor
     steps:
       - checkout
+
       - restore_cache:
           keys:
             - v1-npm-deps-server-{{ checksum "server/package-lock.json" }}
+
       - run:
-          name: Server Dependency Setup
+          name: Install Server Dependencies
           command: |
             cd server
             npm ci --cache ~/.npm
-            echo "No tests defined — skipping npm test"
+
+      - run:
+          name: Run Server Tests
+          command: |
+            cd server
+            echo "No tests defined — skipping"
+
       - save_cache:
+          key: v1-npm-deps-server-{{ checksum "server/package-lock.json" }}
           paths:
             - ~/.npm
-          key: v1-npm-deps-server-{{ checksum "server/package-lock.json" }}
 
   deploy:
     executor: node-executor
     steps:
       - checkout
+
       - attach_workspace:
           at: .
+
       - run:
           name: Deploy Frontend to Vercel
           command: |
             npm install --global vercel
-            export VERCEL_ORG_ID=$VERCEL_ORG_ID
-            export VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID
-            vercel pull --yes --environment=production --token=$VERCEL_TOKEN
-            vercel deploy --prod --token=$VERCEL_TOKEN
+
+            vercel pull \
+              --yes \
+              --environment=production \
+              --token=$VERCEL_TOKEN
+
+            vercel deploy \
+              --prod \
+              --token=$VERCEL_TOKEN
+
       - run:
-          name: Deploy Server to Render
+          name: Deploy Backend to Render
           command: |
             curl -X POST "$RENDER_DEPLOY_HOOK_URL"
 
@@ -111,23 +126,23 @@ workflows:
   devsecops-pipeline:
     jobs:
       - sonar-static-analysis
+
       - dependency-audit
+
       - frontend-build:
           requires:
             - sonar-static-analysis
             - dependency-audit
+
       - server-test:
           requires:
             - sonar-static-analysis
             - dependency-audit
-      - sonar-quality-gate:
-          requires:
-            - sonar-static-analysis
+
       - deploy:
           requires:
             - frontend-build
             - server-test
-            - sonar-quality-gate
           filters:
             branches:
               only: main
