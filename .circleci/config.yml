@@ -106,16 +106,9 @@ jobs:
       - run:
           name: Deploy Frontend to Vercel
           command: |
-            npm install --global vercel
-
-            vercel pull \
-              --yes \
-              --environment=production \
-              --token=$VERCEL_TOKEN
-
-            vercel deploy \
-              --prod \
-              --token=$VERCEL_TOKEN
+             npm install vercel
+             npx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+             npx vercel deploy --prod --token=$VERCEL_TOKEN
 
       - run:
           name: Deploy Backend to Render
