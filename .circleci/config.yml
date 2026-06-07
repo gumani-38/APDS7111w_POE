@@ -21,6 +21,7 @@ jobs:
               -Dsonar.token=$SONAR_TOKEN \
               -Dsonar.sources=frontend/src,server \
               -Dsonar.branch.name=main
+              -Dsonar.qualitygate.wait=true
 
   dependency-audit:
     executor: node-executor
