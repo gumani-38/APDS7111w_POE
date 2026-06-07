@@ -3,7 +3,7 @@ version: 2.1
 executors:
   node-executor:
     docker:
-      - image: cimg/node:20.0.0
+      - image: cimg/node:22.19.0
 
 jobs:
   sonar-static-analysis:
