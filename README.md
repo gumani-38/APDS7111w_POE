@@ -107,6 +107,16 @@ The server starts at `https://localhost:3500`. Browsers will display a security 
 
 <img width="1914" height="865" alt="image" src="https://github.com/user-attachments/assets/308da203-3885-41f9-86d4-9da0a6e8fbb6" />
 
+## SQL Tables
+<img width="1918" height="963" alt="image" src="https://github.com/user-attachments/assets/1d7dee35-cb45-4e87-b55e-3c702b42afce" />
+<img width="1917" height="869" alt="image" src="https://github.com/user-attachments/assets/657bafbd-a790-402b-a23c-1a75365e5544" />
+<img width="1919" height="872" alt="image" src="https://github.com/user-attachments/assets/5acfe82f-d12a-4e3b-8922-2dd3cdb8faf8" />
+<img width="1917" height="872" alt="image" src="https://github.com/user-attachments/assets/b1728175-9687-4dc0-ba30-0bb21a40089e" />
+
+
+
+
+
 
 
 
