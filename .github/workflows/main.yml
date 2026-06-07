@@ -1,0 +1,127 @@
+version: 2.1
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:20.0.0
+
+jobs:
+  sonar-static-analysis:
+    docker:
+      - image: sonarsource/sonar-scanner-cli:latest
+    steps:
+      - checkout
+      - run:
+          name: Run SonarQube Scanner
+          command: |
+            sonar-scanner \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.token=$SONAR_TOKEN
+
+  # New Job: Blocks the pipeline if SonarQube Quality Gate fails
+  sonar-quality-gate:
+    docker:
+      - image: curlimages/curl:latest
+    steps:
+      - run:
+          name: Check SonarQube Quality Gate status
+          command: |
+            # Calls Sonar API to verify project compliance before moving to deployment
+            STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=gumani-38_APDS7111w_POE" | grep -o '"status":"[^"]*' | grep -o '[^"]*$')
+            echo "Quality Gate Status: $STATUS"
+            if [ "$STATUS" != "OK" ]; then
+              echo "Project failed the Quality Gate. Aborting Pipeline."
+              exit 1
+            fi
+
+  dependency-audit:
+    executor: node-executor
+    steps:
+      - checkout
+      - run:
+          name: Audit Dependencies
+          command: |
+            cd frontend && npm audit --omit=dev --audit-level=high
+            cd ../server && npm audit --omit=dev --audit-level=high
+
+  frontend-build:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+      - run:
+          name: Build Frontend
+          command: |
+            cd frontend
+            npm ci
+            npm run build
+      save_cache:
+        paths: [frontend/node_modules]
+        key: v1-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+      # Persistent storage shares the compiled production build with the deploy job
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/.next # Or frontend/build, frontend/dist depending on framework
+
+  server-test:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-deps-server-{{ checksum "server/package-lock.json" }}
+      - run:
+          name: Server Dependency Setup
+          command: cd server && npm ci
+      save_cache:
+        paths: [server/node_modules]
+        key: v1-deps-server-{{ checksum "server/package-lock.json" }}
+
+  deploy:
+    executor: node-executor
+    steps:
+      - checkout
+      # Bring back compiled frontend build artifacts from Stage 2
+      - attach_workspace:
+          at: .
+      - run:
+          name: Deploy Frontend to Vercel
+          command: |
+            npm install --global vercel
+            # Safely exposing parameters within local execution shell context
+            export VERCEL_ORG_ID=$VERCEL_ORG_ID
+            export VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID
+            vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+            vercel deploy --prod --token=$VERCEL_TOKEN
+      - run:
+          name: Deploy Server to Render
+          command: curl -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+workflows:
+  devsecops-pipeline:
+    jobs:
+      - sonar-static-analysis
+      - dependency-audit
+      - frontend-build:
+          requires:
+            - sonar-static-analysis
+            - dependency-audit
+      - server-test:
+          requires:
+            - sonar-static-analysis
+            - dependency-audit
+      # Halts deployment workflow if security parameters/smells fail limits
+      - sonar-quality-gate:
+          requires:
+            - sonar-static-analysis
+      - deploy:
+          requires:
+            - frontend-build
+            - server-test
+            - sonar-quality-gate
+          filters:
+            branches:
+              only: main

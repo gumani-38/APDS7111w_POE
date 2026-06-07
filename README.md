@@ -64,8 +64,52 @@ Press Enter through all the prompts.
 ```bash
 node index.js or nodemon index.js if installed
 ```
+
+## Employee Dummy Built Credentials
+const data = [
+      {
+        fullName: "Thato Ramokgopa",
+        username: "thatoramokgopa@gmail.com",
+        password: "Thato@12Ramo*!",
+      },
+      {
+        fullName: "Mpho Mokoena",
+        username: "mphomokoena@gmail.com",
+        password: "Mpho@12Moko*!",
+      },
+      {
+        fullName: "Sipho Dlamini",
+        username: "siphodlamini@gmail.com",
+        password: "Sipho@12Dlam*!",
+      },
+    ];
+
 ### 6. Run the frontend
 ```bash
 npm start
 ```
 The server starts at `https://localhost:3500`. Browsers will display a security warning for the self-signed certificate — this is expected. Click **Advanced → Proceed** to continue.
+
+
+## SONARQUBE & CIRCLE CI DevSecOps
+
+<img width="1919" height="895" alt="image" src="https://github.com/user-attachments/assets/95ff08f9-22c7-4292-9d60-f9f69fbbe444" />
+
+<img width="1913" height="884" alt="image" src="https://github.com/user-attachments/assets/9f34faff-d9af-4dc5-b0b4-8246930aaf5c" />
+
+<img width="1919" height="878" alt="image" src="https://github.com/user-attachments/assets/8972a737-e7f8-41e4-b06d-6045b37e94f4" />
+
+<img width="1916" height="874" alt="image" src="https://github.com/user-attachments/assets/7a7be031-a433-492d-9ff6-60b0fc58ee09" />
+
+<img width="1919" height="882" alt="image" src="https://github.com/user-attachments/assets/9861a267-92b4-4f41-bc6e-0ad17353cf2c" />
+
+<img width="1916" height="864" alt="image" src="https://github.com/user-attachments/assets/89fb2d07-45e8-42d6-a6c7-f4cc10d37a89" />
+
+<img width="1914" height="865" alt="image" src="https://github.com/user-attachments/assets/308da203-3885-41f9-86d4-9da0a6e8fbb6" />
+
+
+
+
+
+
+
