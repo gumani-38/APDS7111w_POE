@@ -1,134 +1,127 @@
-name: Node & React DevSecOps Pipeline
+version: 2.1
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:20.0.0
 
 jobs:
-  # =======================================================
-  # STAGE 1: AUTOMATED SECURITY SCANS (SAST & SCA)
-  # =======================================================
-  
-  static-analysis:
-    name: CodeQL Security Scan
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
+  sonar-static-analysis:
+    docker:
+      - image: sonarsource/sonar-scanner-cli:latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - checkout
+      - run:
+          name: Run SonarQube Scanner
+          command: |
+            sonar-scanner \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.token=$SONAR_TOKEN
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: 'javascript-typescript'
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+  # New Job: Blocks the pipeline if SonarQube Quality Gate fails
+  sonar-quality-gate:
+    docker:
+      - image: curlimages/curl:latest
+    steps:
+      - run:
+          name: Check SonarQube Quality Gate status
+          command: |
+            # Calls Sonar API to verify project compliance before moving to deployment
+            STATUS=$(curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=gumani-38_APDS7111w_POE" | grep -o '"status":"[^"]*' | grep -o '[^"]*$')
+            echo "Quality Gate Status: $STATUS"
+            if [ "$STATUS" != "OK" ]; then
+              echo "Project failed the Quality Gate. Aborting Pipeline."
+              exit 1
+            fi
 
   dependency-audit:
-    name: Dependency Vulnerability Audit
-    runs-on: ubuntu-latest
+    executor: node-executor
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      # --- SCAN PRODUCTION LIBRARIES ONLY (OMITS REACTION-SCRIPTS ALERTS) ---
-      - name: Audit Frontend Packages
-        run: |
-          cd frontend
-          npm audit --omit=dev --audit-level=high
-
-      - name: Audit Server Packages
-        run: |
-          cd server
-          npm audit --omit=dev --audit-level=high
-
-  # =======================================================
-  # STAGE 2: APPLICATION BUILD VERIFICATION
-  # =======================================================
+      - checkout
+      - run:
+          name: Audit Dependencies
+          command: |
+            cd frontend && npm audit --omit=dev --audit-level=high
+            cd ../server && npm audit --omit=dev --audit-level=high
 
   frontend-build:
-    name: Frontend Build Check
-    needs: [static-analysis, dependency-audit]
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
+    executor: node-executor
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: './frontend/package-lock.json'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build Project
-        run: npm run build
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+      - run:
+          name: Build Frontend
+          command: |
+            cd frontend
+            npm ci
+            npm run build
+      save_cache:
+        paths: [frontend/node_modules]
+        key: v1-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+      # Persistent storage shares the compiled production build with the deploy job
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/.next # Or frontend/build, frontend/dist depending on framework
 
   server-test:
-    name: Server Integrity Check
-    needs: [static-analysis, dependency-audit]
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./server
+    executor: node-executor
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: './server/package-lock.json'
-          
-      - name: Install dependencies
-        run: npm ci
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-deps-server-{{ checksum "server/package-lock.json" }}
+      - run:
+          name: Server Dependency Setup
+          command: cd server && npm ci
+      save_cache:
+        paths: [server/node_modules]
+        key: v1-deps-server-{{ checksum "server/package-lock.json" }}
 
-  # =======================================================
-  # STAGE 3: CONTROLLED MULTI-PLATFORM DEPLOYMENT
-  # =======================================================
-  
   deploy:
-    name: Production Deployment
-    needs: [frontend-build, server-test]
-    runs-on: ubuntu-latest
+    executor: node-executor
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - checkout
+      # Bring back compiled frontend build artifacts from Stage 2
+      - attach_workspace:
+          at: .
+      - run:
+          name: Deploy Frontend to Vercel
+          command: |
+            npm install --global vercel
+            # Safely exposing parameters within local execution shell context
+            export VERCEL_ORG_ID=$VERCEL_ORG_ID
+            export VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID
+            vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+            vercel deploy --prod --token=$VERCEL_TOKEN
+      - run:
+          name: Deploy Server to Render
+          command: curl -X POST "$RENDER_DEPLOY_HOOK_URL"
 
-      # --- DEPLOY FRONTEND TO VERCEL ---
-      - name: Install Vercel CLI
-        run: npm install --global vercel
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy Frontend to Vercel
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      # --- DEPLOY BACKEND TO RENDER ---
-      - name: Deploy Server to Render
-        uses: johnbeynon/render-deploy-action@v0.0.8
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
+workflows:
+  devsecops-pipeline:
+    jobs:
+      - sonar-static-analysis
+      - dependency-audit
+      - frontend-build:
+          requires:
+            - sonar-static-analysis
+            - dependency-audit
+      - server-test:
+          requires:
+            - sonar-static-analysis
+            - dependency-audit
+      # Halts deployment workflow if security parameters/smells fail limits
+      - sonar-quality-gate:
+          requires:
+            - sonar-static-analysis
+      - deploy:
+          requires:
+            - frontend-build
+            - server-test
+            - sonar-quality-gate
+          filters:
+            branches:
+              only: main

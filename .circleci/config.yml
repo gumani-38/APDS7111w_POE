@@ -1,0 +1,142 @@
+version: 2.1
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:22.19.0
+
+jobs:
+  sonar-static-analysis:
+    docker:
+      - image: sonarsource/sonar-scanner-cli:latest
+    steps:
+      - checkout
+      - run:
+          name: Run SonarCloud Analysis
+          command: |
+            sonar-scanner \
+              -Dsonar.projectKey=gumani-38_APDS7111w_POE \
+              -Dsonar.organization=gumani-38 \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.token=$SONAR_TOKEN \
+              -Dsonar.sources=frontend/src,server \
+              -Dsonar.branch.name=main \
+              -Dsonar.qualitygate.wait=true
+
+  dependency-audit:
+    executor: node-executor
+    steps:
+      - checkout
+      - run:
+          name: Audit Frontend Dependencies
+          command: |
+            cd frontend
+            npm audit --omit=dev --audit-level=high
+
+      - run:
+          name: Audit Server Dependencies
+          command: |
+            cd server
+            npm audit --omit=dev --audit-level=high
+
+  frontend-build:
+    executor: node-executor
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-npm-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+
+      - run:
+          name: Install Frontend Dependencies
+          command: |
+            cd frontend
+            npm ci --cache ~/.npm
+
+      - run:
+          name: Build Frontend
+          command: |
+            cd frontend
+            npm run build
+
+      - save_cache:
+          key: v1-npm-deps-frontend-{{ checksum "frontend/package-lock.json" }}
+          paths:
+            - ~/.npm
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/build
+
+  server-test:
+    executor: node-executor
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-npm-deps-server-{{ checksum "server/package-lock.json" }}
+
+      - run:
+          name: Install Server Dependencies
+          command: |
+            cd server
+            npm ci --cache ~/.npm
+
+      - run:
+          name: Run Server Tests
+          command: |
+            cd server
+            echo "No tests defined — skipping"
+
+      - save_cache:
+          key: v1-npm-deps-server-{{ checksum "server/package-lock.json" }}
+          paths:
+            - ~/.npm
+
+  deploy:
+    executor: node-executor
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Deploy Frontend to Vercel
+          command: |
+             npm install vercel
+             npx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+             npx vercel deploy --prod --token=$VERCEL_TOKEN
+
+      - run:
+          name: Deploy Backend to Render
+          command: |
+            curl -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+workflows:
+  devsecops-pipeline:
+    jobs:
+      - sonar-static-analysis
+
+      - dependency-audit
+
+      - frontend-build:
+          requires:
+            - sonar-static-analysis
+            - dependency-audit
+
+      - server-test:
+          requires:
+            - sonar-static-analysis
+            - dependency-audit
+
+      - deploy:
+          requires:
+            - frontend-build
+            - server-test
+          filters:
+            branches:
+              only: main
